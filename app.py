@@ -29,7 +29,7 @@ class BunkBuddyApp:
         
         # Center the main window
         width = 1400
-        height = 900
+        height = 1000
         x = (root.winfo_screenwidth() // 2) - (width // 2)
         y = (root.winfo_screenheight() // 2) - (height // 2)
         self.root.geometry(f"{width}x{height}+{x}+{y}")
@@ -38,9 +38,12 @@ class BunkBuddyApp:
         # Optimize rendering
         self.root.update_idletasks()
         
-        # Load data
-        app_data = get_app_data()
-        if not load_data() or not app_data.get("batch"):
+        # Load data first, then check if setup is needed
+        # Note: load_data() updates app_data in-place, so we must call it BEFORE get_app_data()
+        data_loaded = load_data()
+        app_data = get_app_data()  # Now get reference to the loaded data
+        
+        if not data_loaded or not app_data.get("batch"):
             self.show_first_time_setup()
         
         # Create main UI

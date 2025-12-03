@@ -17,7 +17,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from datetime import datetime
 
-from data_manager import get_app_data
+from data_manager import get_app_data, count_subject_classes
 from calculations import (
     calculate_weeks_elapsed, 
     calculate_total_classes, 
@@ -62,17 +62,14 @@ class SummaryTab:
         scrollbar = ttk.Scrollbar(main_container, orient="vertical", command=canvas.yview)
         self.canvas_frame = tk.Frame(canvas)
         
-        # Center content in canvas
-        canvas_window = canvas.create_window((0, 0), window=self.canvas_frame, anchor="n")
+        # Fill full width instead of centering
+        canvas_window = canvas.create_window((0, 0), window=self.canvas_frame, anchor="nw")
         
         def _configure_canvas(event):
             # Update scroll region
             canvas.configure(scrollregion=canvas.bbox("all"))
-            # Center the frame horizontally
-            canvas_width = event.width
-            frame_width = self.canvas_frame.winfo_reqwidth()
-            x_position = max(0, (canvas_width - frame_width) // 2)
-            canvas.coords(canvas_window, x_position, 0)
+            # Make frame fill the entire canvas width
+            canvas.itemconfig(canvas_window, width=event.width)
         
         canvas.bind("<Configure>", _configure_canvas)
         self.canvas_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
@@ -87,6 +84,25 @@ class SummaryTab:
         canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         
+        # GitHub link at bottom
+        github_frame = ttk.Frame(tab)
+        github_frame.pack(side="bottom", fill=tk.X, pady=(5, 5))
+        
+        github_label = tk.Label(
+            github_frame,
+            text="Made by Siddhesh Bisen | GitHub: https://github.com/siddhesh17b",
+            font=("Segoe UI", 9),
+            foreground="#666666",
+            cursor="hand2"
+        )
+        github_label.pack()
+        
+        # Make link clickable
+        def open_github(event):
+            import webbrowser
+            webbrowser.open("https://github.com/siddhesh17b")
+        github_label.bind("<Button-1>", open_github)
+        
         # Header with icon
         header_frame = tk.Frame(self.canvas_frame, bg="#ffffff")
         header_frame.pack(fill=tk.X, pady=(0, 15))
@@ -94,42 +110,48 @@ class SummaryTab:
         tk.Label(
             header_frame, 
             text="📊 Attendance Dashboard", 
-            font=("Segoe UI", 16, "bold"),
+            font=("Segoe UI", 20, "bold"),
             bg="#ffffff",
             fg="#2c3e50"
         ).pack(pady=15)
         
         # Stats cards frame (enhanced)
         self.stats_frame = tk.Frame(self.canvas_frame, bg="#f8f9fa")
-        self.stats_frame.pack(fill=tk.X, padx=20, pady=(0, 20))
+        self.stats_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 20))
         
         # Table frame with border
         table_container = tk.Frame(self.canvas_frame, bg="#dee2e6", bd=1, relief=tk.SOLID)
-        table_container.pack(fill=tk.BOTH, expand=True, padx=20, pady=(0, 10))
+        table_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 10))
         
         # Table label
         tk.Label(
             table_container,
             text="Subject-wise Attendance Details",
-            font=("Segoe UI", 11, "bold"),
+            font=("Segoe UI", 13, "bold"),
             bg="#ffffff",
             fg="#495057",
             anchor=tk.W
         ).pack(fill=tk.X, padx=2, pady=(2, 5))
         
         # Summary table with enhanced styling
-        columns = ("Subject", "Attended", "Total", "Percentage", "Progress", "Status", "Skip", "Action")
-        self.summary_tree = ttk.Treeview(table_container, columns=columns, show="headings", height=10)
+        columns = ("Subject", "Attended", "Total", "Remaining", "Percentage", "Progress", "Status", "Skip", "Action")
+        self.summary_tree = ttk.Treeview(table_container, columns=columns, show="headings", height=12)
+        
+        # Configure larger font for treeview
+        style = ttk.Style()
+        style.configure("Treeview", font=("Segoe UI", 11), rowheight=30)
+        style.configure("Treeview.Heading", font=("Segoe UI", 11, "bold"))
         
         # Configure column headers with sort functionality
         column_configs = {
             "Subject": (180, "Subject Name", tk.W),
-            "Attended": (80, "Present", tk.CENTER),
-            "Total": (80, "Total", tk.CENTER),
-            "Percentage": (90, "Attendance", tk.CENTER),
-            "Progress": (150, "Visual Progress", tk.CENTER),
-            "Status": (90, "Status", tk.CENTER),
-            "Skip": (80, "Can Skip", tk.CENTER),
+            "Attended": (90, "Present", tk.CENTER),
+            "Total": (90, "Total", tk.CENTER),
+            "Remaining": (90, "Remaining", tk.CENTER),
+            "Percentage": (100, "Attendance", tk.CENTER),
+            "Progress": (160, "Visual Progress", tk.CENTER),
+            "Status": (110, "Status", tk.CENTER),
+            "Skip": (90, "Can Skip", tk.CENTER),
             "Action": (120, "Action", tk.CENTER)
         }
         
@@ -154,7 +176,7 @@ class SummaryTab:
         
         # Tips and actions frame
         action_frame = tk.Frame(self.canvas_frame, bg="#f8f9fa")
-        action_frame.pack(fill=tk.X, padx=20, pady=10)
+        action_frame.pack(fill=tk.X, padx=10, pady=10)
         
         # Info labels
         tips_frame = tk.Frame(action_frame, bg="#f8f9fa")
@@ -163,7 +185,7 @@ class SummaryTab:
         tk.Label(
             tips_frame,
             text="💡 Double-click any row to manually override attendance data",
-            font=("Arial", 9),
+            font=("Segoe UI", 10),
             foreground="#6c757d",
             bg="#f8f9fa",
             anchor=tk.W
@@ -172,7 +194,7 @@ class SummaryTab:
         tk.Label(
             tips_frame,
             text="📌 Click column headers to sort • Color coding: 🟢 Safe • 🟡 Warning • 🔴 At Risk",
-            font=("Arial", 9),
+            font=("Segoe UI", 10),
             foreground="#6c757d",
             bg="#f8f9fa",
             anchor=tk.W
@@ -202,7 +224,7 @@ class SummaryTab:
         items = [(self.summary_tree.set(item, col), item) for item in self.summary_tree.get_children('')]
         
         # Sort based on column type
-        if col in ("Attended", "Total", "Skip"):
+        if col in ("Attended", "Total", "Remaining", "Skip"):
             items.sort(key=lambda x: int(x[0]) if x[0].isdigit() else 0, reverse=self.sort_reverse)
         elif col == "Percentage":
             items.sort(key=lambda x: float(x[0].strip('%')) if '%' in x[0] else 0, reverse=self.sort_reverse)
@@ -255,15 +277,35 @@ class SummaryTab:
         warning_count = 0
         safe_count = 0
         
-        end_date = datetime.now().strftime("%Y-%m-%d")
-        if app_data.get("semester_end"):
-            end_date = min(end_date, app_data["semester_end"])
+        # CRITICAL: Use TODAY as end date, not semester end
+        # This ensures future dates within semester are NOT counted in attendance
+        today = datetime.now().strftime("%Y-%m-%d")
+        semester_end = app_data.get("semester_end")
+        
+        # Calculate weeks only up to TODAY (ignore future dates)
+        calculation_end_date = today
+        if semester_end and today > semester_end:
+            # If semester already ended, use semester end date
+            calculation_end_date = semester_end
         
         weeks = calculate_weeks_elapsed(
             app_data["semester_start"],
-            end_date,
+            calculation_end_date,
             app_data.get("holidays", [])
         )
+        
+        # Calculate remaining weeks till semester end
+        total_weeks = 0
+        remaining_weeks = 0
+        if semester_end:
+            total_weeks = calculate_weeks_elapsed(
+                app_data["semester_start"],
+                semester_end,
+                app_data.get("holidays", [])
+            )
+            if today <= semester_end:
+                remaining_weeks = total_weeks - weeks
+            # else remaining_weeks = 0 (semester already ended)
         
         subject_data_list = []
         
@@ -277,19 +319,33 @@ class SummaryTab:
                 total = override_data["total"]
                 action_text = "📝 Manual"
             else:
-                # Calculate total classes
+                # Calculate total classes using ACCURATE day-by-day counting
+                # This counts actual occurrences of the subject's scheduled days
+                # instead of simple weekly_count × weeks estimation
                 if subject_data.get("total_override") is not None:
                     total = subject_data["total_override"]
                 else:
-                    total = calculate_total_classes(subject_data["weekly_count"], weeks)
+                    batch = app_data.get("batch", "")
+                    holidays = app_data.get("holidays", [])
+                    total = count_subject_classes(
+                        name, 
+                        batch, 
+                        app_data["semester_start"], 
+                        calculation_end_date, 
+                        holidays
+                    )
                 
                 # Calculate present classes (total - absent)
+                # CRITICAL: Only count absences up to TODAY (ignore future dates)
                 # Exclude dates that fall on holidays from absent count
                 from calculations import parse_date, is_date_in_holidays
                 all_absent_dates = subject_data.get("absent_dates", [])
                 absent_count = 0
                 holidays = app_data.get("holidays", [])
                 for date_str in all_absent_dates:
+                    # Ignore future dates - only count past absences
+                    if date_str > today:
+                        continue
                     date_obj = parse_date(date_str)
                     if date_obj and not is_date_in_holidays(date_obj, holidays):
                         absent_count += 1
@@ -320,9 +376,24 @@ class SummaryTab:
             
             total_attendance_pct += attendance_pct
             
+            # Calculate remaining classes till semester end using accurate counting
+            # Count from tomorrow to semester end
+            if semester_end and today < semester_end:
+                from datetime import timedelta
+                tomorrow = (datetime.strptime(today, "%Y-%m-%d") + timedelta(days=1)).strftime("%Y-%m-%d")
+                remaining_classes = count_subject_classes(
+                    name,
+                    app_data.get("batch", ""),
+                    tomorrow,
+                    semester_end,
+                    app_data.get("holidays", [])
+                )
+            else:
+                remaining_classes = 0
+            
             item = self.summary_tree.insert(
                 "", tk.END,
-                values=(name, present, total, f"{attendance_pct:.1f}%", progress_bar, status_icon, safe_skip, action_text)
+                values=(name, present, total, remaining_classes, f"{attendance_pct:.1f}%", progress_bar, status_icon, safe_skip, action_text)
             )
             
             self.summary_tree.item(item, tags=(tag,))
@@ -379,7 +450,7 @@ class SummaryTab:
         tk.Label(
             card,
             text=icon,
-            font=("Segoe UI", 24),
+            font=("Segoe UI", 28),
             bg=bg_color
         ).pack(pady=(15, 5))
         
@@ -387,7 +458,7 @@ class SummaryTab:
         tk.Label(
             card,
             text=str(value),
-            font=("Segoe UI", 22, "bold"),
+            font=("Segoe UI", 26, "bold"),
             fg=text_color,
             bg=bg_color
         ).pack()
@@ -396,7 +467,7 @@ class SummaryTab:
         tk.Label(
             card,
             text=label,
-            font=("Segoe UI", 9),
+            font=("Segoe UI", 11),
             fg="#495057",
             bg=bg_color
         ).pack(pady=(5, 15))

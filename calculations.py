@@ -24,13 +24,27 @@ def parse_date(date_str):
 
 
 def is_date_in_holidays(date, holidays):
-    """Check if a date falls within any holiday period"""
+    """Check if a date falls within any holiday period
+    
+    Args:
+        date: datetime object to check
+        holidays: List of holiday dicts with 'start' and 'end' keys
+    
+    Returns:
+        bool: True if date is within any holiday period
+    """
+    if not date or not holidays:
+        return False
+    
     for holiday in holidays:
-        start = parse_date(holiday['start'])
-        end = parse_date(holiday['end'])
-        if start and end:
-            if start <= date <= end:
+        try:
+            start = parse_date(holiday.get('start'))
+            end = parse_date(holiday.get('end'))
+            if start and end and start <= date <= end:
                 return True
+        except (KeyError, TypeError, AttributeError):
+            # Skip malformed holiday entries
+            continue
     return False
 
 
@@ -80,9 +94,9 @@ def calculate_weeks_elapsed(start_date_str, end_date_str, holidays):
                 holiday_days += (overlap_end - overlap_start).days + 1
     
     # Calculate effective teaching days
-    effective_days = total_days - holiday_days
+    effective_days = max(0, total_days - holiday_days)  # Never negative
     weeks = effective_days / 7.0
-    return weeks
+    return max(0, weeks)  # Never return negative weeks
 
 
 def calculate_total_classes(weekly_count, weeks):

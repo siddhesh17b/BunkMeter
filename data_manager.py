@@ -199,15 +199,90 @@ def get_subjects_for_day(day_name, batch):
                         # Check if normalized batch appears in the normalized part
                         if normalized_batch in normalized_part:
                             lab_subject = extract_subject_name(part.split("(")[0])
-                            if lab_subject and lab_subject not in subjects:
+                            if lab_subject:
+                                # Allow duplicate subjects - same subject can appear in multiple time slots
                                 subjects.append(lab_subject)
                                 break
                 else:
-                    if subject not in subjects:
-                        subjects.append(subject)
+                    # Allow duplicate subjects - same subject can appear in multiple time slots
+                    subjects.append(subject)
     except Exception as e:
         print(f"Error reading timetable for day {day_name}: {e}")
     return subjects
+
+
+def count_subject_classes(subject_name, batch, start_date_str, end_date_str, holidays):
+    """
+    Count actual number of classes for a subject between two dates.
+    
+    This is MORE ACCURATE than weekly_count × weeks because it:
+    1. Counts actual occurrences of the subject's scheduled days
+    2. Excludes holidays from the count
+    3. Handles subjects that appear multiple times on the same day
+    
+    Args:
+        subject_name: Name of the subject (e.g., "Physics Lab")
+        batch: User's batch (e.g., "Group A")
+        start_date_str: Start date (YYYY-MM-DD)
+        end_date_str: End date (YYYY-MM-DD) - inclusive
+        holidays: List of holiday dicts with 'start' and 'end' keys
+    
+    Returns:
+        int: Total number of classes for this subject in the date range
+    
+    Example:
+        Physics Lab on Tuesday (twice per day)
+        Nov 8 to Dec 4: 4 Tuesdays (Nov 11, 18, 25, Dec 2)
+        Result: 4 × 2 = 8 classes
+    """
+    from datetime import datetime, timedelta
+    
+    try:
+        start = datetime.strptime(start_date_str, "%Y-%m-%d")
+        end = datetime.strptime(end_date_str, "%Y-%m-%d")
+    except (ValueError, TypeError):
+        return 0
+    
+    if start > end:
+        return 0
+    
+    # Get which days of the week this subject appears on and how many times
+    # Days: 0=Monday, 1=Tuesday, ..., 5=Saturday, 6=Sunday
+    day_names = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
+    subject_schedule = {}  # {weekday_index: count_per_day}
+    
+    for day_idx, day_name in enumerate(day_names):
+        subjects_on_day = get_subjects_for_day(day_name, batch)
+        count = subjects_on_day.count(subject_name)
+        if count > 0:
+            subject_schedule[day_idx] = count
+    
+    if not subject_schedule:
+        return 0
+    
+    # Helper to check if a date is a holiday
+    def is_holiday(date):
+        for holiday in holidays:
+            try:
+                h_start = datetime.strptime(holiday['start'], "%Y-%m-%d")
+                h_end = datetime.strptime(holiday['end'], "%Y-%m-%d")
+                if h_start <= date <= h_end:
+                    return True
+            except (ValueError, TypeError, KeyError):
+                continue
+        return False
+    
+    # Count actual occurrences
+    total_classes = 0
+    current = start
+    while current <= end:
+        weekday = current.weekday()  # 0=Monday, 6=Sunday
+        if weekday in subject_schedule:
+            if not is_holiday(current):
+                total_classes += subject_schedule[weekday]
+        current += timedelta(days=1)
+    
+    return total_classes
 
 def save_data():
     try:
@@ -221,11 +296,33 @@ def save_data():
         messagebox.showerror("Error", f"Failed to save data: {str(e)}")
 
 def load_data():
+    """
+    Load data from JSON file and update the global app_data dictionary.
+    
+    IMPORTANT: We use .clear() and .update() instead of assignment (=) because:
+    - Assignment creates a NEW dict, breaking references held by other modules
+    - .update() modifies the SAME dict object in-place
+    - This ensures all modules see the same data after loading
+    
+    Without this fix:
+    - Module A calls get_app_data() → gets reference to dict_X
+    - load_data() does app_data = new_dict → now app_data points to dict_Y
+    - Module A still has reference to empty dict_X!
+    
+    With this fix:
+    - Module A calls get_app_data() → gets reference to dict_X
+    - load_data() updates dict_X in-place
+    - Module A's reference to dict_X now has the loaded data!
+    """
     global app_data
     if os.path.exists(DATA_FILE):
         try:
             with open(DATA_FILE, 'r') as f:
-                app_data = json.load(f)
+                loaded_data = json.load(f)
+            # Clear existing data and update with loaded data IN-PLACE
+            # This preserves references held by other modules
+            app_data.clear()
+            app_data.update(loaded_data)
             return True
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load data: {str(e)}")

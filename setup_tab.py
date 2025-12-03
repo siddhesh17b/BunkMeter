@@ -235,6 +235,25 @@ class SetupTab:
             command=self.reset_data
         ).pack(pady=5)
         
+        # GitHub link at bottom (inside scrollable frame)
+        github_frame = ttk.Frame(scrollable_frame)
+        github_frame.grid(row=1, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(10, 10))
+        
+        github_label = tk.Label(
+            github_frame,
+            text="Made by Siddhesh Bisen | GitHub: https://github.com/siddhesh17b",
+            font=("Segoe UI", 9),
+            foreground="#666666",
+            cursor="hand2"
+        )
+        github_label.pack()
+        
+        # Make link clickable
+        def open_github(event):
+            import webbrowser
+            webbrowser.open("https://github.com/siddhesh17b")
+        github_label.bind("<Button-1>", open_github)
+        
         self.refresh()
         return tab
     
@@ -446,6 +465,19 @@ class SetupTab:
                 messagebox.showerror("Error", "Invalid date format")
                 return
             
+            # Validate dates are within semester range
+            semester_start = app_data.get("semester_start")
+            semester_end = app_data.get("semester_end")
+            if semester_start and semester_end:
+                if start < semester_start or end > semester_end:
+                    messagebox.showerror(
+                        "Error", 
+                        f"Holiday dates must be within semester period:\n"
+                        f"Semester: {semester_start} to {semester_end}\n"
+                        f"You entered: {start} to {end}"
+                    )
+                    return
+            
             app_data["holidays"].append({"name": name, "start": start, "end": end})
             save_data()
             self.refresh()
@@ -546,6 +578,31 @@ class SetupTab:
                 messagebox.showerror("Error", "Invalid date format")
                 return
             
+            # Validate dates are within semester range
+            semester_start = app_data.get("semester_start")
+            semester_end = app_data.get("semester_end")
+            if semester_start and semester_end:
+                if start < semester_start or end > semester_end:
+                    messagebox.showerror(
+                        "Error", 
+                        f"Skipped days must be within semester period:\n"
+                        f"Semester: {semester_start} to {semester_end}\n"
+                        f"You entered: {start} to {end}"
+                    )
+                    return
+            
+            # Validate dates are not in the future
+            from datetime import datetime
+            today = datetime.now().strftime("%Y-%m-%d")
+            if start > today:
+                messagebox.showerror(
+                    "Error", 
+                    f"Cannot mark future dates as skipped!\n"
+                    f"Start date {start} is in the future.\n"
+                    f"Today is {today}."
+                )
+                return
+            
             # Initialize skipped_days if not exists
             if "skipped_days" not in app_data:
                 app_data["skipped_days"] = []
@@ -570,13 +627,15 @@ class SetupTab:
                 day_name = current.strftime("%A").upper()
                 subjects = get_subjects_for_day(day_name, batch)
                 
+                # For each subject occurrence (handles multi-occurrence subjects)
+                # subjects list may contain duplicates for subjects appearing multiple times
                 for subject in subjects:
                     subject_data = next((s for s in app_data["subjects"] if s["name"] == subject), None)
                     if subject_data:
                         if "absent_dates" not in subject_data:
                             subject_data["absent_dates"] = []
-                        if date_str not in subject_data["absent_dates"]:
-                            subject_data["absent_dates"].append(date_str)
+                        # Append date for EACH occurrence (allows duplicates)
+                        subject_data["absent_dates"].append(date_str)
                 
                 current += timedelta(days=1)
             
@@ -627,8 +686,10 @@ class SetupTab:
             day_name = current.strftime("%A").upper()
             subjects = get_subjects_for_day(day_name, batch)
             
+            # For each subject occurrence (handles multi-occurrence subjects)
             for subject in subjects:
                 subject_data = next((s for s in app_data["subjects"] if s["name"] == subject), None)
+                # Remove ONE occurrence per loop iteration (matches how they were added)
                 if subject_data and date_str in subject_data.get("absent_dates", []):
                     subject_data["absent_dates"].remove(date_str)
             

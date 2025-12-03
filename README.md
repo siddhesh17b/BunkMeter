@@ -1,171 +1,120 @@
-# MyAttendance - 75% Rule Tracker
+# MyAttendance
 
-Track college attendance, never drop below 75%, know exactly how many classes you can skip.
+**Track your college attendance. Know exactly how many classes you can skip while staying above 75%.**
 
-## Install & Run (30 seconds)
+![Setup Tab](setup_tab.png)
+![Calendar Tab](mark_attendance_tab.png)
+
+---
+
+## Quick Start
 
 ```bash
-git clone https://github.com/siddhesh17b/MyAttendance.git
-cd MyAttendance
 pip install tkcalendar
 python app.py
 ```
 
-That's it. Windows/Mac/Linux all work.
+First run? The app walks you through setup. Import your timetable CSV or use the default, pick your batch, set semester dates. Done.
 
 ---
 
-## First Time Setup (Do This ONCE)
+## How It Works
 
-### Step 1: Set Your Timetable
+1. **You're present by default** — Only mark when you're absent
+2. **Left-click a date** → Uncheck the classes you missed → Save
+3. **Right-click a date** → Skip entire day instantly (click again to undo)
+4. **Check Summary tab** → See which subjects are safe 🟢 and which are at risk 🔴
 
-**Option A: Use Your Own Timetable (Recommended)**
-1. Open app → Go to **Setup Tab**
-2. Click **"📤 Export Timetable Template"** - saves a CSV file
-3. Open the CSV in Excel/Notepad
-4. Edit it with YOUR timetable (see format below)
-5. Click **"📥 Import Custom Timetable"**
-6. Select your batch - **auto-detected from your timetable** (Group A, B1/B3, etc.)
+That's the whole app.
 
-**CSV Format:**
+---
+
+## Your Timetable
+
+### Option 1: Import Your Own (Recommended)
+
+Go to **Setup → Export Timetable Template** to get a CSV file. Edit it:
+
 ```csv
 Day,Time,Subject
-MONDAY,09:00-10:00,Data Mining
+MONDAY,09:00-10:00,Data Structures
 MONDAY,10:00-11:00,Algorithms
-MONDAY,11:00-12:00,Lunch Break
-WEDNESDAY,03:00-05:00,Lab (B1&B3) / Different Lab (B2&B4)
+TUESDAY,02:00-04:00,Lab (Group A) / Lab (Group B)
 ```
-- Day: MONDAY to SATURDAY (uppercase)
-- Time: Any format you want (08:00-09:00, 2:30-3:30 PM, whatever)
-- Subject: Any name. For batch-specific classes use `Subject1 (Group A) / Subject2 (Group B)` or `Lab (B1&B3) / Lab (B2&B4)`
-- Batch names in parentheses are **auto-detected** - use any naming you want!
 
-**Option B: Use Default Timetable**
-1. App auto-detects batches from timetable (defaults to B1/B3 or B2/B4)
-2. Select your batch from detected options
-3. App loads timetable automatically
-4. You can export → edit → import later
+- **Day**: MONDAY through SATURDAY (uppercase)
+- **Time**: Any format works (08:00-09:00, 2-3pm, whatever)
+- **Subject**: Any name. For batch-specific: `Subject (BatchA) / Subject (BatchB)`
 
-### Step 2: Set Semester Dates
-1. Setup Tab → Pick semester start date
-2. Pick semester end date
-3. Done.
+Import it back via **Setup → Import Custom Timetable**. App auto-detects your batch options.
 
-### Step 3: Mark Attendance
-Go to **"Mark Attendance"** tab. That's your main screen.
+### Option 2: Use Default
+
+Just select your batch (B1/B3 or B2/B4) and go. You can always import your own later.
 
 ---
 
-## Daily Use (10 seconds)
+## Calendar Colors
 
-### Calendar Tab - Your Main Screen
-
-**Left-click a date** → Uncheck subjects you were absent → Save  
-**Right-click a date** → Toggles entire day (absent ↔ present)
-
-**Colors mean:**
-- ⚪ White = All present
-- 🌸 Pink = Some absent
-- 🔴 Dark Red = All absent (completely skipped)
-- 🟡 Yellow = Holiday
-- Gray = Sunday/Future dates
-
-**Right-click to toggle:** Present → All absent → Present (quick undo!)
-
-### Summary Tab - See Your Status
-
-Shows all subjects with:
-- Present/Total classes
-- Percentage (must stay ≥75%)
-- How many more you can skip
-- Visual progress bars (🟢 = safe, 🔴 = danger)
-
-**Double-click any subject** → Manually set attendance (for cancelled classes, make-up lectures, etc.)
+| Color | Meaning |
+|-------|---------|
+| White/Green | All present |
+| Cyan | Some absent |
+| Dark Red | Completely skipped |
+| Yellow | Holiday |
+| Gray | Sunday or future |
 
 ---
 
 ## Common Tasks
 
-### Add Holidays
-Setup Tab → Add Holiday Period → Pick dates → Save
-
-### Mark Sick Leave (Multiple Days)
-Setup Tab → Add Skipped Period → Pick date range → Auto-marks all classes absent
-
-### Reset Everything (New Semester)
-Setup Tab → Reset Data → Confirms → Fresh start (keeps your timetable)
-
-### Reset Timetable Too
-Setup Tab → Reset to Default → Loads hardcoded timetable → Then export/edit/import your own
-
-### Change Timetable Mid-Semester
-1. Export current → Edit CSV → Import
-2. Or click "Reset to Default" first, then import yours
+| Task | How |
+|------|-----|
+| Mark absent | Left-click date → uncheck subjects → Save |
+| Skip entire day | Right-click the date |
+| Add holiday | Setup → Add Holiday Period |
+| Sick leave (multi-day) | Setup → Add Skipped Period |
+| Fix wrong count | Summary → double-click subject → override manually |
+| New semester | Setup → Reset Data |
 
 ---
 
-## Key Features
+## Summary Tab
 
-- **You're present by default** - Only click when absent (saves time)
-- **Right-click = absent entire day** - Fast when you skip everything
-- **Holidays ignored** - Holiday dates don't count as absences OR reduce total classes
-- **Visual dashboard** - Instantly see safe/danger subjects with color-coded progress bars
-- **Manual override** - Fix attendance when classes get cancelled/rescheduled
-- **Dynamic batch detection** - App auto-detects Group A/B or B1/B3 naming from your timetable
-- **Unique subject colors** - Each subject in timetable gets a distinct color for easy identification
-- **Works offline** - No internet, no account, data stored locally
-- **Fast** - Updates instantly, no lag
+Your dashboard. Shows for each subject:
+- Classes attended / total
+- Attendance percentage  
+- **How many more you can skip** (the number you actually want)
+- Color-coded status (green = safe, red = danger)
 
----
-
-## File Structure
-
-```
-MyAttendance/
-├── app.py                    # Run this
-├── data_manager.py           # Timetable + data handling
-├── calculations.py           # Attendance math
-├── setup_tab.py              # Configuration screen
-├── timetable_tab.py          # Weekly schedule view
-├── attendance_calendar.py    # Main calendar screen
-├── summary_tab.py            # Dashboard with stats
-├── data.json                 # Your data (auto-created)
-└── COMPLETE_GUIDE.md         # Detailed CSV guide
-```
+Double-click any row to manually override if classes got cancelled or rescheduled.
 
 ---
 
 ## Troubleshooting
 
-**App won't start:** Install tkcalendar → `pip install tkcalendar`
-
-**Wrong labs showing:** Check batch selection (Setup Tab)
-
-**Data not saving:** Run app with file write permissions
-
-**Want fresh start:** Setup Tab → Reset Data (or delete data.json)
-
-**CSV import fails:** Check format - Day must be MONDAY-SATURDAY uppercase, needs Day,Time,Subject columns
+| Problem | Fix |
+|---------|-----|
+| Won't start | `pip install tkcalendar` |
+| Wrong subjects showing | Check batch in Setup tab |
+| Import fails | Day must be uppercase (MONDAY not Monday) |
+| Want fresh start | Delete `data.json` or use Setup → Reset Data |
 
 ---
 
-## Tech
+## Files
 
-Python 3.8+, Tkinter (built-in), tkcalendar. ~500 lines per file. MIT License.
-
-**Made by:** Siddhesh Bisen ([@siddhesh17b](https://github.com/siddhesh17b))  
-**Why:** College project + actually needed this myself
+- `app.py` — Run this
+- `data.json` — Your attendance data (auto-created)
+- `custom_timetable.json` — Your imported timetable (if any)
+- `COMPLETE_GUIDE.md` — Detailed CSV format guide
 
 ---
 
-## Support
+## Contributing
 
-- Check `COMPLETE_GUIDE.md` for detailed CSV format
-- Export Template to see example
-- [GitHub Issues](https://github.com/siddhesh17b/MyAttendance/issues)
+Issues and PRs welcome. It's a simple Tkinter app, easy to hack on.
 
-## Screenshots
+---
 
-![Setup Tab](setup_tab.png)
-![Timetable Tab](timetable_tab.png)
-![Calendar Tab](mark_attendance_tab.png)
+**Made by** [Siddhesh Bisen](https://github.com/siddhesh17b) — MIT License

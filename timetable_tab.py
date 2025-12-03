@@ -36,21 +36,21 @@ class TimetableTab:
         container.columnconfigure(0, weight=1)
         container.rowconfigure(0, weight=1)
         canvas = tk.Canvas(container, bg="white", highlightthickness=0)
-        scrollbar = ttk.Scrollbar(container, orient="vertical", command=canvas.yview)
+        scrollbar = ttk.Scrollbar(container, orient="horizontal", command=canvas.xview)
         self.timetable_frame = ttk.Frame(canvas)
-        canvas.configure(yscrollcommand=scrollbar.set)
+        canvas.configure(xscrollcommand=scrollbar.set)
         canvas.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
-        scrollbar.grid(row=0, column=1, sticky=(tk.N, tk.S))
+        scrollbar.grid(row=1, column=0, sticky=(tk.W, tk.E))
         canvas_frame = canvas.create_window((0, 0), window=self.timetable_frame, anchor="nw")
         def configure_scroll_region(event):
             canvas.configure(scrollregion=canvas.bbox("all"))
-            canvas.itemconfig(canvas_frame, width=event.width)
+            canvas.itemconfig(canvas_frame, height=event.height)
         self.timetable_frame.bind("<Configure>", configure_scroll_region)
         canvas.bind("<Configure>", configure_scroll_region)
         
-        # Enable mouse wheel scrolling
+        # Enable mouse wheel horizontal scrolling
         def _on_mousewheel(event):
-            canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+            canvas.xview_scroll(int(-1*(event.delta/120)), "units")
         canvas.bind_all("<MouseWheel>", _on_mousewheel)
     
     def refresh(self):
@@ -97,29 +97,58 @@ class TimetableTab:
                 tk.Label(self.timetable_frame, text=subject, font=("Segoe UI", 8, "bold" if subject not in ["BREAK", "LUNCH", ""] else "normal"), background=bg_color, foreground=fg_color, relief="solid", borderwidth=1, padx=8, pady=8, wraplength=100, justify="center").grid(row=row_idx, column=col_idx, sticky=(tk.W, tk.E, tk.N, tk.S), padx=1, pady=1)
         for col in range(len(time_slots) + 1):
             self.timetable_frame.columnconfigure(col, weight=1, minsize=90)
+        
+        # GitHub link at bottom
+        github_frame = ttk.Frame(self.frame)
+        github_frame.grid(row=2, column=0, sticky=(tk.W, tk.E), pady=(5, 0))
+        
+        github_label = tk.Label(
+            github_frame,
+            text="Made by Siddhesh Bisen | GitHub: https://github.com/siddhesh17b",
+            font=("Segoe UI", 9),
+            foreground="#666666",
+            cursor="hand2"
+        )
+        github_label.pack()
+        
+        # Make link clickable
+        def open_github(event):
+            import webbrowser
+            webbrowser.open("https://github.com/siddhesh17b")
+        github_label.bind("<Button-1>", open_github)
     
     def get_subject_for_slot(self, day, time_slot, batch):
+        """Get subject for a specific day/time slot, handling batch-specific entries"""
         day_upper = day.upper()
         active_timetable = get_active_timetable()
-        if day_upper in active_timetable:
-            subject_cell = active_timetable[day_upper].get(time_slot, "")
-            if "Lunch" in subject_cell:
-                return "LUNCH"
-            if not subject_cell:
-                return ""
-            if "/" in subject_cell and ("B1&B3" in subject_cell or "B2&B4" in subject_cell):
-                parts = subject_cell.split("/")
-                if batch in ["B1/B3", "B1", "B3"] and "B1&B3" in subject_cell:
-                    for part in parts:
-                        if "B1&B3" in part:
-                            return self.extract_subject_name(part.split("(")[0].strip())
-                elif batch in ["B2/B4", "B2", "B4"] and "B2&B4" in subject_cell:
-                    for part in parts:
-                        if "B2&B4" in part:
-                            return self.extract_subject_name(part.split("(")[0].strip())
-                return ""
-            return self.extract_subject_name(subject_cell)
-        return ""
+        if day_upper not in active_timetable:
+            return ""
+        
+        subject_cell = active_timetable[day_upper].get(time_slot, "")
+        if not subject_cell:
+            return ""
+        if "Lunch" in subject_cell:
+            return "LUNCH"
+        
+        # Handle batch-specific entries: "Subject (BatchA) / Subject (BatchB)"
+        if "/" in subject_cell and "(" in subject_cell:
+            parts = subject_cell.split("/")
+            # Normalize batch for comparison (remove spaces, slashes, hyphens)
+            normalized_batch = batch.replace("/", "").replace(" ", "").replace("-", "").replace("&", "").upper()
+            
+            for part in parts:
+                # Normalize part for comparison
+                normalized_part = part.replace("&", "").replace(" ", "").replace("-", "").upper()
+                
+                # Check if normalized batch appears in the normalized part
+                if normalized_batch in normalized_part:
+                    # Extract subject name (before the parenthesis)
+                    if "(" in part:
+                        return self.extract_subject_name(part.split("(")[0].strip())
+                    return self.extract_subject_name(part.strip())
+            return ""  # Batch not found in any part
+        
+        return self.extract_subject_name(subject_cell)
     
     def extract_subject_name(self, cell_value):
         if not cell_value or cell_value.strip() == "":
