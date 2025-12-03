@@ -8,10 +8,12 @@ GitHub: https://github.com/siddhesh17b
 
 import json
 import os
-from tkinter import messagebox
+import csv
+from tkinter import messagebox, filedialog
 from collections import defaultdict
 
 DATA_FILE = "data.json"
+CUSTOM_TIMETABLE_FILE = "custom_timetable.json"
 TIMETABLE_DATA = {
     "MONDAY": {
         "09:00-10:00": "Minor",
@@ -110,7 +112,8 @@ def extract_subject_name(cell_value):
 def parse_timetable_csv(batch):
     subject_counts = defaultdict(int)
     try:
-        for day, time_slots_dict in TIMETABLE_DATA.items():
+        active_timetable = get_active_timetable()
+        for day, time_slots_dict in active_timetable.items():
             for time_slot, cell_value in time_slots_dict.items():
                 if not cell_value or cell_value == "Lunch Break":
                     continue
@@ -140,10 +143,11 @@ def parse_timetable_csv(batch):
 def get_subjects_for_day(day_name, batch):
     subjects = []
     day_upper = day_name.upper()
-    if day_upper not in TIMETABLE_DATA:
+    active_timetable = get_active_timetable()
+    if day_upper not in active_timetable:
         return []
     try:
-        time_slots_dict = TIMETABLE_DATA[day_upper]
+        time_slots_dict = active_timetable[day_upper]
         for time_slot, cell_value in time_slots_dict.items():
             if not cell_value or cell_value == "Lunch Break":
                 continue
@@ -190,3 +194,157 @@ def load_data():
 
 def get_app_data():
     return app_data
+
+
+def get_active_timetable():
+    """Get the active timetable (custom if exists, otherwise default)"""
+    if os.path.exists(CUSTOM_TIMETABLE_FILE):
+        try:
+            with open(CUSTOM_TIMETABLE_FILE, 'r') as f:
+                custom_timetable = json.load(f)
+                return custom_timetable
+        except Exception as e:
+            print(f"Error loading custom timetable: {e}")
+            return TIMETABLE_DATA
+    return TIMETABLE_DATA
+
+
+def export_timetable_to_csv(filepath=None):
+    """Export current timetable to CSV format"""
+    if not filepath:
+        filepath = filedialog.asksaveasfilename(
+            title="Export Timetable",
+            defaultextension=".csv",
+            filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
+            initialfile="my_timetable.csv"
+        )
+    
+    if not filepath:
+        return False
+    
+    try:
+        active_timetable = get_active_timetable()
+        with open(filepath, 'w', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            writer.writerow(['Day', 'Time', 'Subject'])
+            
+            days_order = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY']
+            time_slots = ['09:00-10:00', '10:00-11:00', '11:00-12:00', '12:00-01:00',
+                         '01:00-02:00', '02:00-03:00', '03:00-04:00', '04:00-05:00']
+            
+            for day in days_order:
+                if day in active_timetable:
+                    for time_slot in time_slots:
+                        subject = active_timetable[day].get(time_slot, '')
+                        writer.writerow([day, time_slot, subject])
+        
+        messagebox.showinfo("Success", f"Timetable exported successfully to:\n{filepath}")
+        return True
+    except Exception as e:
+        messagebox.showerror("Error", f"Failed to export timetable: {str(e)}")
+        return False
+
+
+def import_timetable_from_csv(filepath=None):
+    """Import custom timetable from CSV file"""
+    if not filepath:
+        filepath = filedialog.askopenfilename(
+            title="Import Custom Timetable",
+            filetypes=[("CSV files", "*.csv"), ("All files", "*.*")]
+        )
+    
+    if not filepath:
+        return False
+    
+    try:
+        new_timetable = {}
+        required_days = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY']
+        time_slots = ['09:00-10:00', '10:00-11:00', '11:00-12:00', '12:00-01:00',
+                     '01:00-02:00', '02:00-03:00', '03:00-04:00', '04:00-05:00']
+        
+        # Initialize structure
+        for day in required_days:
+            new_timetable[day] = {slot: '' for slot in time_slots}
+        
+        # Read CSV
+        with open(filepath, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            
+            # Validate headers
+            if not all(col in reader.fieldnames for col in ['Day', 'Time', 'Subject']):
+                messagebox.showerror("Error", "CSV must have columns: Day, Time, Subject")
+                return False
+            
+            for row in reader:
+                day = row['Day'].strip().upper()
+                time = row['Time'].strip()
+                subject = row['Subject'].strip()
+                
+                if day not in required_days:
+                    messagebox.showwarning("Warning", f"Invalid day: {day}. Skipping...")
+                    continue
+                
+                if time not in time_slots:
+                    messagebox.showwarning("Warning", f"Invalid time slot: {time}. Skipping...")
+                    continue
+                
+                new_timetable[day][time] = subject
+        
+        # Validate all days present
+        for day in required_days:
+            if day not in new_timetable or not new_timetable[day]:
+                response = messagebox.askyesno(
+                    "Missing Days",
+                    f"Day {day} is missing or incomplete. Continue anyway?"
+                )
+                if not response:
+                    return False
+        
+        # Preview and confirm
+        subject_count = sum(1 for day in new_timetable.values() 
+                          for subject in day.values() 
+                          if subject and subject != 'Lunch Break')
+        
+        response = messagebox.askyesno(
+            "Confirm Import",
+            f"Timetable loaded successfully!\n\n"
+            f"Days: {len(new_timetable)}\n"
+            f"Subjects found: {subject_count}\n\n"
+            f"This will replace your current timetable.\n"
+            f"Continue?"
+        )
+        
+        if response:
+            # Save custom timetable
+            with open(CUSTOM_TIMETABLE_FILE, 'w') as f:
+                json.dump(new_timetable, f, indent=2)
+            
+            messagebox.showinfo("Success", "Custom timetable imported successfully!\nRestart the app to apply changes.")
+            return True
+        
+        return False
+        
+    except Exception as e:
+        messagebox.showerror("Error", f"Failed to import timetable:\n{str(e)}")
+        return False
+
+
+def reset_to_default_timetable():
+    """Reset to the default hardcoded timetable"""
+    if os.path.exists(CUSTOM_TIMETABLE_FILE):
+        response = messagebox.askyesno(
+            "Confirm Reset",
+            "This will delete your custom timetable and restore the default.\n"
+            "Continue?"
+        )
+        if response:
+            try:
+                os.remove(CUSTOM_TIMETABLE_FILE)
+                messagebox.showinfo("Success", "Timetable reset to default.\nRestart the app to apply changes.")
+                return True
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to reset timetable: {str(e)}")
+                return False
+    else:
+        messagebox.showinfo("Info", "Already using default timetable.")
+        return False

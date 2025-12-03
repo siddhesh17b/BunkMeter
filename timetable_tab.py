@@ -8,7 +8,7 @@ GitHub: https://github.com/siddhesh17b
 
 import tkinter as tk
 from tkinter import ttk
-from data_manager import get_app_data, TIMETABLE_DATA
+from data_manager import get_app_data, get_active_timetable
 
 class TimetableTab:
     def __init__(self, parent, refresh_callback=None):
@@ -80,8 +80,9 @@ class TimetableTab:
     
     def get_subject_for_slot(self, day, time_slot, batch):
         day_upper = day.upper()
-        if day_upper in TIMETABLE_DATA:
-            subject_cell = TIMETABLE_DATA[day_upper].get(time_slot, "")
+        active_timetable = get_active_timetable()
+        if day_upper in active_timetable:
+            subject_cell = active_timetable[day_upper].get(time_slot, "")
             if "Lunch" in subject_cell:
                 return "LUNCH"
             if not subject_cell:

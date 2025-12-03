@@ -10,7 +10,8 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from tkcalendar import Calendar
 from datetime import datetime
-from data_manager import get_app_data, save_data, parse_timetable_csv
+from data_manager import get_app_data, save_data, parse_timetable_csv, \
+    export_timetable_to_csv, import_timetable_from_csv, reset_to_default_timetable
 from calculations import parse_date
 
 class SetupTab:
@@ -120,6 +121,40 @@ class SetupTab:
         btn_frame.pack(fill=tk.X, pady=5)
         ttk.Button(btn_frame, text="➕ Add Holiday", command=self.add_holiday).pack(side=tk.LEFT, padx=5)
         ttk.Button(btn_frame, text="➖ Remove Holiday", command=self.remove_holiday).pack(side=tk.LEFT, padx=5)
+        
+        # Timetable Management Section
+        timetable_frame = tk.LabelFrame(scrollable_frame, text="Custom Timetable Management", 
+                                        font=("Arial", 11, "bold"), padx=10, pady=10)
+        timetable_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        tk.Label(
+            timetable_frame, 
+            text="📚 Upload your own timetable CSV or export the current one as a template.\nSee TIMETABLE_UPLOAD_GUIDE.md for format details.",
+            font=("Arial", 9),
+            foreground="#007bff",
+            justify=tk.LEFT
+        ).pack(pady=5)
+        
+        timetable_btn_frame = tk.Frame(timetable_frame)
+        timetable_btn_frame.pack(fill=tk.X, pady=5)
+        
+        ttk.Button(
+            timetable_btn_frame, 
+            text="📥 Import Custom Timetable", 
+            command=self.import_timetable
+        ).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Button(
+            timetable_btn_frame, 
+            text="📤 Export Timetable Template", 
+            command=self.export_timetable
+        ).pack(side=tk.LEFT, padx=5)
+        
+        ttk.Button(
+            timetable_btn_frame, 
+            text="🔄 Reset to Default", 
+            command=self.reset_timetable
+        ).pack(side=tk.LEFT, padx=5)
         
         # Reset Data Section
         reset_frame = tk.LabelFrame(scrollable_frame, text="Reset Data", 
@@ -268,3 +303,63 @@ class SetupTab:
         self.refresh_all_tabs()
         
         messagebox.showinfo("Success", "All data has been reset successfully!")
+    
+    def import_timetable(self):
+        """Import custom timetable from CSV"""
+        success = import_timetable_from_csv()
+        if success:
+            # Reinitialize subjects based on new timetable
+            app_data = get_app_data()
+            batch = app_data.get("batch", "B1/B3")
+            subject_counts = parse_timetable_csv(batch)
+            
+            # Update or add subjects
+            existing_subjects = {s["name"]: s for s in app_data.get("subjects", [])}
+            app_data["subjects"] = []
+            
+            for subject_name, weekly_count in subject_counts.items():
+                if subject_name in existing_subjects:
+                    # Preserve existing data
+                    app_data["subjects"].append(existing_subjects[subject_name])
+                else:
+                    # Add new subject
+                    app_data["subjects"].append({
+                        "name": subject_name,
+                        "weekly_count": weekly_count,
+                        "total_override": None,
+                        "absent_dates": []
+                    })
+            
+            save_data()
+            self.refresh_all_tabs()
+    
+    def export_timetable(self):
+        """Export current timetable to CSV template"""
+        export_timetable_to_csv()
+    
+    def reset_timetable(self):
+        """Reset to default hardcoded timetable"""
+        success = reset_to_default_timetable()
+        if success:
+            # Reinitialize subjects with default timetable
+            app_data = get_app_data()
+            batch = app_data.get("batch", "B1/B3")
+            subject_counts = parse_timetable_csv(batch)
+            
+            # Update subjects
+            existing_subjects = {s["name"]: s for s in app_data.get("subjects", [])}
+            app_data["subjects"] = []
+            
+            for subject_name, weekly_count in subject_counts.items():
+                if subject_name in existing_subjects:
+                    app_data["subjects"].append(existing_subjects[subject_name])
+                else:
+                    app_data["subjects"].append({
+                        "name": subject_name,
+                        "weekly_count": weekly_count,
+                        "total_override": None,
+                        "absent_dates": []
+                    })
+            
+            save_data()
+            self.refresh_all_tabs()
