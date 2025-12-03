@@ -11,7 +11,8 @@ from tkinter import ttk, messagebox
 from tkcalendar import Calendar
 from datetime import datetime
 from data_manager import get_app_data, save_data, parse_timetable_csv, \
-    export_timetable_to_csv, import_timetable_from_csv, reset_to_default_timetable
+    export_timetable_to_csv, import_timetable_from_csv, reset_to_default_timetable, \
+    get_subjects_for_day
 from calculations import parse_date
 
 class SetupTab:
@@ -22,6 +23,7 @@ class SetupTab:
         self.start_date_cal = None
         self.end_date_cal = None
         self.holidays_tree = None
+        self.skipped_tree = None
     
     def create(self):
         """Create setup tab"""
@@ -171,6 +173,31 @@ class SetupTab:
             command=self.reset_timetable
         ).pack(side=tk.LEFT, padx=5)
         
+        # Skipped Days (RIGHT)
+        skipped_frame = tk.LabelFrame(right_column, text="Completely Skipped Days (e.g., Sick Leave)", 
+                                      font=("Arial", 11, "bold"), padx=10, pady=10)
+        skipped_frame.pack(fill=tk.X, padx=10, pady=10)
+        
+        tk.Label(
+            skipped_frame, 
+            text="📅 Days when you were completely absent (all classes marked absent)",
+            font=("Arial", 9),
+            foreground="#dc3545",
+            justify=tk.LEFT
+        ).pack(pady=5)
+        
+        self.skipped_tree = ttk.Treeview(skipped_frame, columns=("Name", "Start", "End"), 
+                                         show="headings", height=4)
+        self.skipped_tree.heading("Name", text="Reason")
+        self.skipped_tree.heading("Start", text="Start Date")
+        self.skipped_tree.heading("End", text="End Date")
+        self.skipped_tree.pack(fill=tk.BOTH, expand=True, pady=5)
+        
+        skipped_btn_frame = tk.Frame(skipped_frame)
+        skipped_btn_frame.pack(fill=tk.X, pady=5)
+        ttk.Button(skipped_btn_frame, text="➕ Add Skipped Period", command=self.add_skipped_days).pack(side=tk.LEFT, padx=5)
+        ttk.Button(skipped_btn_frame, text="➖ Remove Skipped Period", command=self.remove_skipped_days).pack(side=tk.LEFT, padx=5)
+        
         # Reset Data Section (RIGHT)
         reset_frame = tk.LabelFrame(right_column, text="Reset Data", 
                                     font=("Arial", 11, "bold"), padx=10, pady=10)
@@ -194,13 +221,20 @@ class SetupTab:
         return tab
     
     def refresh(self):
-        """Refresh holidays list"""
+        """Refresh holidays and skipped days lists"""
         app_data = get_app_data()
+        
+        # Refresh holidays
         for item in self.holidays_tree.get_children():
             self.holidays_tree.delete(item)
-        
         for holiday in app_data.get("holidays", []):
             self.holidays_tree.insert("", tk.END, values=(holiday["name"], holiday["start"], holiday["end"]))
+        
+        # Refresh skipped days
+        for item in self.skipped_tree.get_children():
+            self.skipped_tree.delete(item)
+        for skipped in app_data.get("skipped_days", []):
+            self.skipped_tree.insert("", tk.END, values=(skipped["name"], skipped["start"], skipped["end"]))
     
     def on_batch_update(self):
         app_data = get_app_data()
@@ -283,6 +317,129 @@ class SetupTab:
         self.refresh()
         self.refresh_all_tabs()
     
+    def add_skipped_days(self):
+        """Add a skipped days period"""
+        app_data = get_app_data()
+        dialog = tk.Toplevel()
+        dialog.title("Add Skipped Days")
+        dialog.geometry("350x220")
+        
+        tk.Label(dialog, text="Reason (e.g., Sick, Personal):").pack(pady=5)
+        name_entry = ttk.Entry(dialog, width=30)
+        name_entry.pack()
+        
+        tk.Label(dialog, text="Start Date (YYYY-MM-DD):").pack(pady=5)
+        start_entry = ttk.Entry(dialog, width=30)
+        start_entry.pack()
+        
+        tk.Label(dialog, text="End Date (YYYY-MM-DD):").pack(pady=5)
+        end_entry = ttk.Entry(dialog, width=30)
+        end_entry.pack()
+        
+        tk.Label(
+            dialog, 
+            text="⚠️ All classes in this period will be marked absent",
+            font=("Arial", 8),
+            foreground="#dc3545"
+        ).pack(pady=5)
+        
+        def save_skipped():
+            name = name_entry.get().strip()
+            start = start_entry.get().strip()
+            end = end_entry.get().strip()
+            
+            if not name or not start or not end:
+                messagebox.showerror("Error", "All fields are required")
+                return
+            
+            if not parse_date(start) or not parse_date(end):
+                messagebox.showerror("Error", "Invalid date format")
+                return
+            
+            # Initialize skipped_days if not exists
+            if "skipped_days" not in app_data:
+                app_data["skipped_days"] = []
+            
+            app_data["skipped_days"].append({"name": name, "start": start, "end": end})
+            
+            # Mark all subjects as absent for this period
+            from datetime import datetime, timedelta
+            start_date = datetime.strptime(start, "%Y-%m-%d")
+            end_date = datetime.strptime(end, "%Y-%m-%d")
+            current = start_date
+            batch = app_data.get("batch", "B1/B3")
+            
+            while current <= end_date:
+                date_str = current.strftime("%Y-%m-%d")
+                day_name = current.strftime("%A").upper()
+                subjects = get_subjects_for_day(day_name, batch)
+                
+                for subject in subjects:
+                    subject_data = next((s for s in app_data["subjects"] if s["name"] == subject), None)
+                    if subject_data:
+                        if "absent_dates" not in subject_data:
+                            subject_data["absent_dates"] = []
+                        if date_str not in subject_data["absent_dates"]:
+                            subject_data["absent_dates"].append(date_str)
+                
+                current += timedelta(days=1)
+            
+            save_data()
+            self.refresh()
+            self.refresh_all_tabs()
+            dialog.destroy()
+            messagebox.showinfo("Success", f"Marked all classes as absent from {start} to {end}")
+        
+        ttk.Button(dialog, text="Save", command=save_skipped).pack(pady=10)
+    
+    def remove_skipped_days(self):
+        """Remove selected skipped period"""
+        app_data = get_app_data()
+        selected = self.skipped_tree.selection()
+        if not selected:
+            messagebox.showwarning("Warning", "Please select a skipped period to remove")
+            return
+        
+        if "skipped_days" not in app_data:
+            return
+        
+        index = self.skipped_tree.index(selected[0])
+        skipped = app_data["skipped_days"][index]
+        
+        # Ask if user wants to remove the absence marks too
+        remove_absences = messagebox.askyesno(
+            "Remove Absences?",
+            f"Do you want to remove the absence marks for {skipped['name']}?\n\n"
+            f"From: {skipped['start']}\nTo: {skipped['end']}\n\n"
+            "Yes = Remove both period and absence marks\n"
+            "No = Remove period only (keep absence marks)"
+        )
+        
+        if remove_absences:
+            # Remove absence marks for this period
+            from datetime import datetime, timedelta
+            start_date = datetime.strptime(skipped["start"], "%Y-%m-%d")
+            end_date = datetime.strptime(skipped["end"], "%Y-%m-%d")
+            current = start_date
+            batch = app_data.get("batch", "B1/B3")
+            
+            while current <= end_date:
+                date_str = current.strftime("%Y-%m-%d")
+                day_name = current.strftime("%A").upper()
+                subjects = get_subjects_for_day(day_name, batch)
+                
+                for subject in subjects:
+                    subject_data = next((s for s in app_data["subjects"] if s["name"] == subject), None)
+                    if subject_data and date_str in subject_data.get("absent_dates", []):
+                        subject_data["absent_dates"].remove(date_str)
+                
+                current += timedelta(days=1)
+        
+        del app_data["skipped_days"][index]
+        save_data()
+        self.refresh()
+        self.refresh_all_tabs()
+    
     def reset_data(self):
         """Reset all user data (holidays and absent dates)"""
         # Confirmation dialog
@@ -290,6 +447,7 @@ class SetupTab:
             "Confirm Reset",
             "This will clear:\n\n"
             "• All holidays\n"
+            "• All skipped days\n"
             "• All absent dates for all subjects\n"
             "• All total overrides\n\n"
             "Batch and semester dates will be preserved.\n\n"
@@ -302,8 +460,10 @@ class SetupTab:
         
         app_data = get_app_data()
         
-        # Clear holidays
+        # Clear holidays and skipped days
         app_data["holidays"] = []
+        if "skipped_days" in app_data:
+            app_data["skipped_days"] = []
         
         # Clear absent dates and total overrides for all subjects
         for subject in app_data.get("subjects", []):
@@ -335,6 +495,7 @@ class SetupTab:
             for subject_name, weekly_count in subject_counts.items():
                 if subject_name in existing_subjects:
                     # Preserve existing data
+                    existing_subjects[subject_name]["weekly_count"] = weekly_count
                     app_data["subjects"].append(existing_subjects[subject_name])
                 else:
                     # Add new subject
@@ -347,6 +508,7 @@ class SetupTab:
             
             save_data()
             self.refresh_all_tabs()
+            messagebox.showinfo("Success", "Custom timetable imported successfully!\nAll tabs have been updated.")
     
     def export_timetable(self):
         """Export current timetable to CSV template"""
@@ -367,6 +529,7 @@ class SetupTab:
             
             for subject_name, weekly_count in subject_counts.items():
                 if subject_name in existing_subjects:
+                    existing_subjects[subject_name]["weekly_count"] = weekly_count
                     app_data["subjects"].append(existing_subjects[subject_name])
                 else:
                     app_data["subjects"].append({
@@ -378,3 +541,4 @@ class SetupTab:
             
             save_data()
             self.refresh_all_tabs()
+            messagebox.showinfo("Success", "Timetable reset to default successfully!\nAll tabs have been updated.")

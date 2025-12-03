@@ -57,6 +57,8 @@ Imagine having a **smart assistant** that:
 - **Custom Subject Names**: Use ANY subject names - full flexibility
 - **Custom Batch Names**: Not limited to B1/B3 - supports any batch naming convention
 - **Holiday Management**: Mark individual days or date ranges as holidays
+- **Skipped Days Management**: ✨ **NEW!** Track sick leaves and bulk absence periods
+- **Right-Click Quick Mark**: Instantly mark entire day as absent with right-click
 - **Data Persistence**: All data stored locally in JSON format
 - **Reset Functionality**: Clear all data for new semester with one click
 
@@ -132,11 +134,14 @@ python app.py
 - **Batch Selection**: Choose your batch (supports custom batch names via CSV)
 - **Semester Dates**: Set start and end dates using calendar widgets
 - **Holiday Management**: Add/remove holiday periods with names
-- **Custom Timetable Management**: ✨ **NEW!**
+- **Skipped Days Management**: ✨ **NEW!** Add date ranges when completely absent (sick leave, etc.)
+  - Automatically marks all classes as absent for the period
+  - Remove period with option to restore attendance
+- **Custom Timetable Management**:
   - 📥 Import Custom Timetable (CSV)
   - 📤 Export Timetable Template
   - 🔄 Reset to Default
-- **Reset Data**: Clear all holidays and absent dates (preserves batch and semester dates)
+- **Reset Data**: Clear all holidays, skipped days, and absent dates (preserves batch and semester dates)
 
 ### Timetable Tab 📋
 - View your weekly schedule in a color-coded grid
@@ -149,6 +154,7 @@ python app.py
 - **Color-Coded Days**:
   - 🟢 Light Green: All classes present
   - 🔴 Light Red: Some classes marked absent
+  - 🔴 Dark Red: Completely skipped (ALL classes absent)
   - 🟡 Light Yellow: Holiday
   - 🔵 Light Blue: Today
   - ⚪ Light Gray: Weekend/Future dates
@@ -160,15 +166,21 @@ python app.py
    - Uncheck subjects to mark absent
    - Click "Save Attendance"
 
-2. **Entire Day**:
+2. **Entire Day** (Right-Click):
    - Right-click any date
-   - Confirms marking all classes as absent
-   - No need to select individual subjects
+   - Instantly marks ALL classes as absent
+   - No confirmation needed - fast and efficient!
 
 3. **Holidays**:
    - Left-click a date
    - Click "🏖️ Mark as Holiday" button
    - Toggle back to regular day anytime
+
+4. **Bulk Skipped Days** (Sick Leave):
+   - Go to Setup Tab → Skipped Days section
+   - Add date range (e.g., 5 consecutive sick days)
+   - All classes automatically marked absent for entire period
+   - Shows as dark red in calendar
 
 ### Summary Tab 📊
 - View all subjects with attendance percentages
@@ -205,6 +217,7 @@ MyAttendance/
 | 🟣 Lab Classes | Purple | `#7B1FA2` | CN Lab, DAA Lab, Software Lab |
 | 🟠 Special Classes | Orange | `#E65100` | Minor, MDM, OE, Honors |
 | 🟡 Holidays | Yellow | `#FFF9C4` | Marked holiday dates |
+| 🔴 Completely Skipped | Dark Red | `#FFCDD2` | ALL classes absent |
 | ⚪ Future/Weekend | Gray | `#F5F5F5` | Upcoming/non-working days |
 
 ## 🧮 Attendance Formula

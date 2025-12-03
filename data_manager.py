@@ -223,8 +223,21 @@ def export_timetable_to_csv(filepath=None):
             
             for day in days_order:
                 if day in active_timetable:
-                    # Export all time slots dynamically (supports any time slots)
-                    for time_slot in sorted(active_timetable[day].keys()):
+                    # Sort time slots in 24-hour chronological order
+                    def sort_time_key(time_slot):
+                        try:
+                            start_time = time_slot.split("-")[0].strip()
+                            hour, minute = start_time.split(":")
+                            hour = int(hour)
+                            # Convert 01:00-05:00 to PM times (13:00-17:00) for proper sorting
+                            if 1 <= hour <= 5:
+                                hour += 12
+                            return hour * 60 + int(minute)
+                        except:
+                            return 9999  # Put invalid slots at end
+                    
+                    time_slots = sorted(active_timetable[day].keys(), key=sort_time_key)
+                    for time_slot in time_slots:
                         subject = active_timetable[day].get(time_slot, '')
                         writer.writerow([day, time_slot, subject])
         
@@ -305,7 +318,6 @@ def import_timetable_from_csv(filepath=None):
             with open(CUSTOM_TIMETABLE_FILE, 'w') as f:
                 json.dump(new_timetable, f, indent=2)
             
-            messagebox.showinfo("Success", "Custom timetable imported successfully!\nRestart the app to apply changes.")
             return True
         
         return False

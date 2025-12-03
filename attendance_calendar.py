@@ -19,7 +19,8 @@ from data_manager import get_app_data, save_data, get_subjects_for_day
 
 # Color scheme for day status
 COLOR_PRESENT = "#E8F5E9"  # Light green - all classes present
-COLOR_ABSENT = "#FFEBEE"   # Light red - some classes absent  
+COLOR_ABSENT = "#FFEBEE"   # Light red - some classes absent
+COLOR_SKIPPED = "#EF5350"  # Dark red - ALL classes absent (completely skipped)
 COLOR_HOLIDAY = "#FFF9C4"  # Light yellow - holiday
 COLOR_TODAY = "#E3F2FD"    # Light blue - current day
 COLOR_WEEKEND = "#F5F5F5"  # Light gray - weekend
@@ -81,6 +82,13 @@ class AttendanceCalendar:
         
         ttk.Button(header_frame, text="Today", width=8,
                   command=self.go_to_today).pack(side=tk.LEFT, padx=20)
+        
+        # Hint for right-click functionality
+        hint_label = ttk.Label(header_frame, 
+                              text="💡 Tip: Right-click any date to instantly mark entire day as absent",
+                              foreground="#666666",
+                              font=("Segoe UI", 9))
+        hint_label.pack(side=tk.LEFT, padx=30)
     
     def create_calendar_container(self, parent):
         """Create scrollable calendar grid container"""
@@ -126,6 +134,7 @@ class AttendanceCalendar:
         legends = [
             ("All Present", COLOR_PRESENT),
             ("Some Absent", COLOR_ABSENT),
+            ("Completely Skipped", COLOR_SKIPPED),
             ("Holiday", COLOR_HOLIDAY),
             ("Today", COLOR_TODAY),
             ("Sunday/Future", COLOR_WEEKEND)
@@ -226,7 +235,6 @@ class AttendanceCalendar:
         save_data()
         self.refresh()
         self.refresh_all_tabs()
-        messagebox.showinfo("Success", f"Marked all classes as absent for {date_str}")
     
     def show_subjects_panel(self, date_str, subjects):
         """Display subjects with checkboxes in side panel"""
@@ -457,7 +465,7 @@ class AttendanceCalendar:
         return False
     
     def get_day_status(self, date_str):
-        """Get the status of a day (present/absent/holiday/no_class)"""
+        """Get the status of a day (present/absent/skipped/holiday/no_class)"""
         app_data = get_app_data()
         
         # Check if date is within semester range
@@ -478,13 +486,18 @@ class AttendanceCalendar:
         if not subjects:
             return "no_class"
         
-        # Check if any subject has absence on this date
+        # Check if ALL subjects are absent (completely skipped day)
+        all_absent = True
         has_absent = False
         for subject in subjects:
             subject_data = next((s for s in app_data["subjects"] if s["name"] == subject), None)
             if subject_data and date_str in subject_data.get("absent_dates", []):
                 has_absent = True
-                break
+            else:
+                all_absent = False
+        
+        if all_absent and has_absent:
+            return "skipped"  # All subjects absent
         
         return "absent" if has_absent else "present"
     
@@ -556,6 +569,8 @@ class AttendanceCalendar:
                         bg_color = COLOR_FUTURE  # Outside semester or no classes
                     elif status == "holiday":
                         bg_color = COLOR_HOLIDAY
+                    elif status == "skipped":
+                        bg_color = COLOR_SKIPPED  # All classes absent
                     elif status == "absent":
                         bg_color = COLOR_ABSENT
                     elif status == "present":
