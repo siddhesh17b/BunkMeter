@@ -51,10 +51,11 @@ Imagine having a **smart assistant** that:
 - **Google Calendar-Style Interface**: Monthly grid view with intuitive color-coded days
 - **Smart Attendance Tracking**: All classes marked present by default, click to mark absent
 - **75% Threshold Calculator**: Real-time calculation of safe classes to skip
-- **Custom Timetable Upload**: ✨ **NEW!** Upload your own timetable via CSV
+- **Custom Timetable Upload**: Upload your complete timetable (both batches) via CSV
 - **Flexible Time Slots**: Support for ANY time slots (08:00-09:00, custom times, etc.)
-- **Custom Subject Names**: Use ANY subject names - no code extraction
-- **Custom Batch Names**: Not limited to B1/B3 - use any batch naming
+- **Smart Batch Filtering**: Upload one timetable with both batches, app shows only your batch's classes
+- **Custom Subject Names**: Use ANY subject names - full flexibility
+- **Custom Batch Names**: Not limited to B1/B3 - supports any batch naming convention
 - **Holiday Management**: Mark individual days or date ranges as holidays
 - **Data Persistence**: All data stored locally in JSON format
 - **Reset Functionality**: Clear all data for new semester with one click
@@ -230,10 +231,16 @@ All data is stored locally in `data.json`:
   ],
   "subjects": [
     {
-      "name": "DAA",
+      "name": "DM",
       "weekly_count": 3,
       "total_override": null,
       "absent_dates": ["2025-11-15", "2025-11-22"]
+    },
+    {
+      "name": "DAA",
+      "weekly_count": 3,
+      "total_override": null,
+      "absent_dates": []
     }
   ]
 }
@@ -319,7 +326,8 @@ pip install tkcalendar
 - **Present by Default**: Only track absences (saves time!)
 - **Real-time Updates**: Instant recalculation on changes
 - **Atomic Operations**: Auto-save after each action
-- **Batch-Aware**: Different labs for B1/B3 vs B2/B4
+- **Smart Batch Filtering**: Upload complete timetable once, app filters by selected batch
+- **Batch-Aware Display**: Different labs shown for B1/B3 vs B2/B4 automatically
 - **User Confirmation**: Dialogs for critical actions
 - **Clean Code**: Proper spacing, comments, docstrings
 
