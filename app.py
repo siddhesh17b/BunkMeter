@@ -80,6 +80,7 @@ class BunkBuddyApp:
                     "name": subject,
                     "weekly_count": count,
                     "total_override": None,
+                    "attendance_override": None,
                     "absent_dates": []  # All classes present by default
                 }
                 for subject, count in weekly_counts.items()

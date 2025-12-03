@@ -259,7 +259,7 @@ class SetupTab:
                     existing_subjects[subject]["weekly_count"] = count
                     app_data["subjects"].append(existing_subjects[subject])
                 else:
-                    app_data["subjects"].append({"name": subject, "weekly_count": count, "total_override": None, "absent_dates": []})
+                    app_data["subjects"].append({"name": subject, "weekly_count": count, "total_override": None, "attendance_override": None, "absent_dates": []})
             
             save_data()
             self.refresh_all_tabs()
@@ -542,6 +542,7 @@ class SetupTab:
         for subject in app_data.get("subjects", []):
             subject["absent_dates"] = []
             subject["total_override"] = None
+            subject["attendance_override"] = None
         
         # Save changes
         save_data()
@@ -576,6 +577,7 @@ class SetupTab:
                         "name": subject_name,
                         "weekly_count": weekly_count,
                         "total_override": None,
+                        "attendance_override": None,
                         "absent_dates": []
                     })
             
@@ -609,6 +611,7 @@ class SetupTab:
                         "name": subject_name,
                         "weekly_count": weekly_count,
                         "total_override": None,
+                        "attendance_override": None,
                         "absent_dates": []
                     })
             

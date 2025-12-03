@@ -58,6 +58,7 @@ Imagine having a **smart assistant** that:
 - **Custom Batch Names**: Not limited to B1/B3 - supports any batch naming convention
 - **Holiday Management**: Mark individual days or date ranges as holidays via centered, scrollable dialogs
 - **Skipped Days Management**: ✨ **NEW!** Track sick leaves and bulk absence periods
+- **Manual Attendance Override**: ✨ **NEW!** Override calculated attendance when classes are rescheduled/cancelled
 - **Right-Click Quick Mark**: Instantly mark entire day as absent with right-click (with hint in UI)
 - **Data Persistence**: All data stored locally in JSON format
 - **Reset Functionality**: Clear all data for new semester with one click
@@ -193,7 +194,11 @@ python app.py
 
 ### Summary Tab 📊
 - View all subjects with attendance percentages
-- Columns: Subject | Present | Total | Attendance % | Status | Safe to Skip
+- Columns: Subject | Present | Total | Attendance % | Status | Safe to Skip | Action
+- **Manual Override**: Double-click any subject to manually set total and attended classes
+  - Useful for cancelled/rescheduled classes, extra lectures, make-up classes
+  - Visual indicator shows when manual data is active
+  - Clear override to return to automatic calculation
 - Quick stats cards showing overall performance
 - Export detailed reports with timestamp
 
@@ -258,12 +263,14 @@ All data is stored locally in `data.json`:
       "name": "DM",
       "weekly_count": 3,
       "total_override": null,
+      "attendance_override": null,
       "absent_dates": ["2025-11-15", "2025-11-22"]
     },
     {
       "name": "DAA",
       "weekly_count": 3,
       "total_override": null,
+      "attendance_override": {"total": 25, "attended": 20},
       "absent_dates": []
     }
   ]

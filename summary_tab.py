@@ -55,7 +55,7 @@ class SummaryTab:
         self.stats_frame.pack(fill=tk.X, padx=10, pady=10)
         
         # Summary table
-        columns = ("Subject", "Present", "Total", "Attendance %", "Status", "Safe to Skip")
+        columns = ("Subject", "Present", "Total", "Attendance %", "Status", "Safe to Skip", "Action")
         self.summary_tree = ttk.Treeview(tab, columns=columns, show="headings", height=12)
         
         # Enable mouse wheel scrolling on treeview
@@ -73,6 +73,17 @@ class SummaryTab:
             self.summary_tree.column(col, width=width)
         
         self.summary_tree.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        
+        # Bind double-click to open override dialog
+        self.summary_tree.bind("<Double-Button-1>", self.on_row_double_click)
+        
+        # Info label
+        tk.Label(
+            tab,
+            text="💡 Tip: Double-click any subject row to manually override attendance data",
+            font=("Arial", 9),
+            foreground="#6c757d"
+        ).pack(pady=5)
         
         # Export button
         ttk.Button(
@@ -122,15 +133,23 @@ class SummaryTab:
         for subject_data in app_data.get("subjects", []):
             name = subject_data["name"]
             
-            # Calculate total classes
-            if subject_data.get("total_override") is not None:
-                total = subject_data["total_override"]
+            # Check if manual override exists
+            if subject_data.get("attendance_override") is not None:
+                override_data = subject_data["attendance_override"]
+                present = override_data["attended"]
+                total = override_data["total"]
+                action_text = "📝 Edit (Manual)"
             else:
-                total = calculate_total_classes(subject_data["weekly_count"], weeks)
-            
-            # Calculate present classes (total - absent)
-            absent_count = len(subject_data.get("absent_dates", []))
-            present = max(0, total - absent_count)
+                # Calculate total classes
+                if subject_data.get("total_override") is not None:
+                    total = subject_data["total_override"]
+                else:
+                    total = calculate_total_classes(subject_data["weekly_count"], weeks)
+                
+                # Calculate present classes (total - absent)
+                absent_count = len(subject_data.get("absent_dates", []))
+                present = max(0, total - absent_count)
+                action_text = "📝 Edit"
             
             attendance_pct = calculate_attendance(present, total)
             safe_skip = calculate_safe_skip(present, total)
@@ -144,7 +163,7 @@ class SummaryTab:
             
             item = self.summary_tree.insert(
                 "", tk.END,
-                values=(name, present, total, f"{attendance_pct:.1f}%", status, safe_skip)
+                values=(name, present, total, f"{attendance_pct:.1f}%", status, safe_skip, action_text)
             )
             
             if attendance_pct < 75:
@@ -225,13 +244,19 @@ class SummaryTab:
                 for subject_data in app_data.get("subjects", []):
                     name = subject_data["name"]
                     
-                    if subject_data.get("total_override") is not None:
-                        total = subject_data["total_override"]
+                    # Check if manual override exists
+                    if subject_data.get("attendance_override") is not None:
+                        override_data = subject_data["attendance_override"]
+                        present = override_data["attended"]
+                        total = override_data["total"]
                     else:
-                        total = calculate_total_classes(subject_data["weekly_count"], weeks)
-                    
-                    absent_count = len(subject_data.get("absent_dates", []))
-                    present = max(0, total - absent_count)
+                        if subject_data.get("total_override") is not None:
+                            total = subject_data["total_override"]
+                        else:
+                            total = calculate_total_classes(subject_data["weekly_count"], weeks)
+                        
+                        absent_count = len(subject_data.get("absent_dates", []))
+                        present = max(0, total - absent_count)
                     
                     attendance_pct = calculate_attendance(present, total)
                     status, _ = get_attendance_status(attendance_pct)
@@ -244,3 +269,200 @@ class SummaryTab:
         
         except Exception as e:
             messagebox.showerror("Error", f"Failed to export report: {str(e)}")
+    
+    def on_row_double_click(self, event):
+        """Handle double-click on tree row to open override dialog"""
+        selection = self.summary_tree.selection()
+        if not selection:
+            return
+        
+        item = selection[0]
+        values = self.summary_tree.item(item, "values")
+        if not values:
+            return
+        
+        subject_name = values[0]
+        self.open_override_dialog(subject_name)
+    
+    def open_override_dialog(self, subject_name):
+        """Open dialog to manually override attendance data"""
+        from data_manager import get_app_data, save_data
+        
+        app_data = get_app_data()
+        subject_data = None
+        
+        # Find the subject
+        for subj in app_data.get("subjects", []):
+            if subj["name"] == subject_name:
+                subject_data = subj
+                break
+        
+        if not subject_data:
+            return
+        
+        # Create dialog
+        dialog = tk.Toplevel()
+        dialog.title(f"Manual Override - {subject_name}")
+        dialog.geometry("500x450")
+        dialog.resizable(True, True)
+        
+        # Center the dialog
+        dialog.update_idletasks()
+        width = dialog.winfo_width()
+        height = dialog.winfo_height()
+        x = (dialog.winfo_screenwidth() // 2) - (width // 2)
+        y = (dialog.winfo_screenheight() // 2) - (height // 2)
+        dialog.geometry(f'{width}x{height}+{x}+{y}')
+        
+        dialog.transient(self.notebook.master)
+        dialog.grab_set()
+        
+        # Header
+        tk.Label(
+            dialog,
+            text=f"📝 Manual Attendance Override",
+            font=("Segoe UI", 14, "bold")
+        ).pack(pady=15)
+        
+        tk.Label(
+            dialog,
+            text=f"Subject: {subject_name}",
+            font=("Segoe UI", 11)
+        ).pack(pady=5)
+        
+        # Calculate current values
+        end_date = datetime.now().strftime("%Y-%m-%d")
+        if app_data.get("semester_end"):
+            end_date = min(end_date, app_data["semester_end"])
+        
+        weeks = calculate_weeks_elapsed(
+            app_data["semester_start"],
+            end_date,
+            app_data.get("holidays", [])
+        )
+        
+        # Check for existing override
+        has_override = subject_data.get("attendance_override") is not None
+        if has_override:
+            current_attended = subject_data["attendance_override"]["attended"]
+            current_total = subject_data["attendance_override"]["total"]
+        else:
+            if subject_data.get("total_override") is not None:
+                current_total = subject_data["total_override"]
+            else:
+                current_total = calculate_total_classes(subject_data["weekly_count"], weeks)
+            
+            absent_count = len(subject_data.get("absent_dates", []))
+            current_attended = max(0, current_total - absent_count)
+        
+        # Current data frame
+        current_frame = tk.LabelFrame(dialog, text="📊 Current Data", font=("Segoe UI", 10, "bold"))
+        current_frame.pack(fill=tk.X, padx=20, pady=10)
+        
+        tk.Label(
+            current_frame,
+            text=f"Attended: {current_attended} classes",
+            font=("Segoe UI", 10)
+        ).pack(anchor=tk.W, padx=10, pady=5)
+        
+        tk.Label(
+            current_frame,
+            text=f"Total: {current_total} classes",
+            font=("Segoe UI", 10)
+        ).pack(anchor=tk.W, padx=10, pady=5)
+        
+        current_pct = calculate_attendance(current_attended, current_total)
+        status_color = COLOR_SAFE if current_pct >= 75 else COLOR_RISK
+        
+        tk.Label(
+            current_frame,
+            text=f"Attendance: {current_pct:.1f}%",
+            font=("Segoe UI", 10, "bold"),
+            foreground=status_color
+        ).pack(anchor=tk.W, padx=10, pady=5)
+        
+        if has_override:
+            tk.Label(
+                current_frame,
+                text="⚠️ Manual override is active",
+                font=("Segoe UI", 9),
+                foreground="#ff9800"
+            ).pack(anchor=tk.W, padx=10, pady=5)
+        
+        # Override inputs frame
+        input_frame = tk.LabelFrame(dialog, text="✏️ Override Attendance", font=("Segoe UI", 10, "bold"))
+        input_frame.pack(fill=tk.X, padx=20, pady=10)
+        
+        tk.Label(
+            input_frame,
+            text="Enter actual attendance data:",
+            font=("Segoe UI", 9)
+        ).pack(anchor=tk.W, padx=10, pady=5)
+        
+        # Total classes input
+        tk.Label(input_frame, text="Total Classes Held:", font=("Segoe UI", 9)).pack(anchor=tk.W, padx=10, pady=(10, 0))
+        total_entry = tk.Entry(input_frame, font=("Segoe UI", 10), width=15)
+        total_entry.insert(0, str(current_total))
+        total_entry.pack(anchor=tk.W, padx=10, pady=5)
+        
+        # Attended classes input
+        tk.Label(input_frame, text="Classes Attended:", font=("Segoe UI", 9)).pack(anchor=tk.W, padx=10, pady=(10, 0))
+        attended_entry = tk.Entry(input_frame, font=("Segoe UI", 10), width=15)
+        attended_entry.insert(0, str(current_attended))
+        attended_entry.pack(anchor=tk.W, padx=10, pady=5)
+        
+        # Info label
+        tk.Label(
+            dialog,
+            text="💡 Use this when actual attendance differs from timetable\n(cancellations, rescheduling, extra classes, etc.)",
+            font=("Arial", 8),
+            foreground="#6c757d",
+            justify=tk.CENTER
+        ).pack(pady=10)
+        
+        # Buttons frame
+        btn_frame = tk.Frame(dialog)
+        btn_frame.pack(pady=15)
+        
+        def save_override():
+            try:
+                total = int(total_entry.get())
+                attended = int(attended_entry.get())
+                
+                if total < 0 or attended < 0:
+                    messagebox.showerror("Error", "Values must be non-negative")
+                    return
+                
+                if attended > total:
+                    messagebox.showerror("Error", "Attended cannot be greater than total")
+                    return
+                
+                # Save override
+                subject_data["attendance_override"] = {
+                    "total": total,
+                    "attended": attended
+                }
+                
+                save_data()
+                self.refresh_all_tabs()
+                dialog.destroy()
+                messagebox.showinfo("Success", f"Manual override applied for {subject_name}")
+                
+            except ValueError:
+                messagebox.showerror("Error", "Please enter valid numbers")
+        
+        def clear_override():
+            if not has_override:
+                messagebox.showinfo("Info", "No override exists for this subject")
+                return
+            
+            if messagebox.askyesno("Confirm", "Remove manual override and use calculated attendance?"):
+                subject_data["attendance_override"] = None
+                save_data()
+                self.refresh_all_tabs()
+                dialog.destroy()
+                messagebox.showinfo("Success", f"Manual override removed for {subject_name}")
+        
+        ttk.Button(btn_frame, text="💾 Save Override", command=save_override).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_frame, text="🔄 Clear Override", command=clear_override).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_frame, text="❌ Cancel", command=dialog.destroy).pack(side=tk.LEFT, padx=5)
