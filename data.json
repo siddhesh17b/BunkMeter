@@ -1,14 +1,30 @@
 {
   "batch": "B2/B4",
-  "semester_start": "2025-07-07",
-  "semester_end": "2025-11-04",
+  "semester_start": "2025-07-09",
+  "semester_end": "2025-12-03",
   "holidays": [],
   "subjects": [
+    {
+      "name": "TOC",
+      "weekly_count": 3,
+      "total_override": null,
+      "absent_dates": []
+    },
+    {
+      "name": "CN",
+      "weekly_count": 3,
+      "total_override": null,
+      "absent_dates": [
+        "2025-12-02"
+      ]
+    },
     {
       "name": "Minor",
       "weekly_count": 3,
       "total_override": null,
-      "absent_dates": []
+      "absent_dates": [
+        "2025-12-02"
+      ]
     },
     {
       "name": "DM",
@@ -20,22 +36,26 @@
       "name": "DAA",
       "weekly_count": 3,
       "total_override": null,
-      "absent_dates": []
+      "absent_dates": [
+        "2025-12-02"
+      ]
     },
     {
-      "name": "TOC",
-      "weekly_count": 3,
+      "name": "siddhesh",
+      "weekly_count": 1,
       "total_override": null,
-      "absent_dates": []
-    },
-    {
-      "name": "CN",
-      "weekly_count": 3,
-      "total_override": null,
-      "absent_dates": []
+      "absent_dates": [
+        "2025-12-02"
+      ]
     },
     {
       "name": "DAA Lab",
+      "weekly_count": 2,
+      "total_override": null,
+      "absent_dates": []
+    },
+    {
+      "name": "CN Lab",
       "weekly_count": 2,
       "total_override": null,
       "absent_dates": []
@@ -47,7 +67,7 @@
       "absent_dates": []
     },
     {
-      "name": "CN Lab",
+      "name": "Technical Skill",
       "weekly_count": 2,
       "total_override": null,
       "absent_dates": []
@@ -59,8 +79,8 @@
       "absent_dates": []
     },
     {
-      "name": "Technical Skill",
-      "weekly_count": 2,
+      "name": "HONORS",
+      "weekly_count": 4,
       "total_override": null,
       "absent_dates": []
     },
@@ -73,12 +93,6 @@
     {
       "name": "Mentor-Mentee Meeting",
       "weekly_count": 1,
-      "total_override": null,
-      "absent_dates": []
-    },
-    {
-      "name": "HONORS",
-      "weekly_count": 4,
       "total_override": null,
       "absent_dates": []
     }

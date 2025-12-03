@@ -69,7 +69,21 @@ class TimetableTab:
         time_slots_set = set()
         for day_data in active_timetable.values():
             time_slots_set.update(day_data.keys())
-        time_slots = sorted(list(time_slots_set))  # Supports ANY time slots including 08:00-09:00
+        
+        # Sort time slots by 24-hour format (convert 12-hour to 24-hour for sorting)
+        def sort_time_slot(slot):
+            start_time = slot.split("-")[0].strip()
+            # Convert to 24-hour format for sorting
+            if ":" in start_time:
+                hour, minute = start_time.split(":")
+                hour = int(hour)
+                # If it's 01:00-05:00, it's PM (13:00-17:00)
+                if 1 <= hour <= 5:
+                    hour += 12
+                return hour * 60 + int(minute)
+            return 0
+        
+        time_slots = sorted(list(time_slots_set), key=sort_time_slot)
         
         days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
         ttk.Label(self.timetable_frame, text="Day", font=("Segoe UI", 10, "bold"), background="#ECEFF1", relief="solid", borderwidth=1, padding=8).grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S), padx=1, pady=1)
