@@ -1,495 +1,164 @@
-<div align="center">
+# MyAttendance - 75% Rule Tracker
 
-# 🎓 MyAttendance
-### Your Smart Companion for Stress-Free Attendance Tracking
+Track college attendance, never drop below 75%, know exactly how many classes you can skip.
 
-[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
-[![Tkinter](https://img.shields.io/badge/GUI-Tkinter-green.svg)](https://docs.python.org/3/library/tkinter.html)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![GitHub](https://img.shields.io/badge/GitHub-siddhesh17b-black.svg)](https://github.com/siddhesh17b)
+## Install & Run (30 seconds)
 
-**Never worry about the 75% attendance rule again!**
-
-*A beautiful, fast, and intelligent Python desktop app that tracks your attendance automatically, calculates safe skips in real-time, and helps you plan your semester with confidence.*
-
-[🚀 Quick Start](#-quick-start---3-simple-steps) • [✨ Features](#-features) • [📖 Guide](#-user-guide) • [💡 Why This?](#-why-students-love-myattendance)
-
-</div>
-
----
-
-## ✨ Why Students Love MyAttendance
-
-### The Problem Every Student Faces 😰
-- **75% attendance rule** is mandatory but confusing to track
-- Manual calculation is tedious and error-prone
-- Fear of missing too many classes and losing eligibility
-- No clear visibility into "safe" days to skip
-- Spreadsheets are boring and complicated
-
-### The MyAttendance Solution 🎯
-Imagine having a **smart assistant** that:
-- ✅ **Tracks automatically** - You're present by default! Just click when absent
-- 📊 **Calculates instantly** - Real-time percentage updates with every change
-- 🎯 **Tells you exactly** - "You can safely skip 3 more classes"
-- 🗓️ **Looks beautiful** - Google Calendar-style interface you'll love
-- 🚀 **Works offline** - No internet needed, your data stays private
-- ⚡ **Saves time** - 30 seconds vs 30 minutes of manual calculation
-
-### Real Student Benefits 💪
-> "Before: Spent 30 mins calculating attendance before planning weekend  
-> After: 10 seconds to check, plan with confidence!" - Every User
-
-- 🎓 **Never miss exams** due to low attendance
-- 🏖️ **Plan vacations** strategically knowing your safe buffer
-- 😌 **Reduce stress** with visual green/red indicators
-- 📈 **Stay motivated** seeing your progress in real-time
-
-## �📋 Features
-
-### 🎯 Core Features
-- **Google Calendar-Style Interface**: Monthly grid view with intuitive color-coded days
-- **Smart Attendance Tracking**: All classes marked present by default, click to mark absent
-- **75% Threshold Calculator**: Real-time calculation of safe classes to skip
-- **Custom Timetable Upload**: Upload your complete timetable (both batches) via CSV
-- **Flexible Time Slots**: Support for ANY time slots (08:00-09:00, custom times, etc.)
-- **Smart Batch Filtering**: Upload one timetable with both batches, app shows only your batch's classes
-- **Custom Subject Names**: Use ANY subject names - full flexibility
-- **Custom Batch Names**: Not limited to B1/B3 - supports any batch naming convention
-- **Holiday Management**: Mark individual days or date ranges as holidays via centered, scrollable dialogs
-- **Skipped Days Management**: ✨ **NEW!** Track sick leaves and bulk absence periods
-- **Manual Attendance Override**: ✨ **NEW!** Override calculated attendance when classes are rescheduled/cancelled
-- **Right-Click Quick Mark**: Instantly mark entire day as absent with right-click (with hint in UI)
-- **Data Persistence**: All data stored locally in JSON format
-- **Reset Functionality**: Clear all data for new semester with one click
-- **Centered Windows**: All windows and dialogs centered on screen for better UX
-- **Performance Optimized**: Smooth rendering with deferred refresh logic
-- **Mouse Wheel Scrolling**: Enabled on all tabs, treeviews, and dialog windows
-
-### 🖱️ Interaction Methods
-- **Left-Click**: Select a date to mark individual subjects absent/present
-- **Right-Click**: Instantly mark all classes for a day as absent
-- **Holiday Toggle**: Single-click button to mark days as holidays
-
-### 📊 Dashboard & Reports
-- Real-time attendance statistics for all subjects
-- Visual indicators (Green = Safe ≥75%, Red = At Risk <75%)
-- Export detailed attendance reports to text files
-- Quick stats: Total subjects, average attendance, at-risk count
-
-## 📷 Screenshots
-
-### 🎯 Setup & Configuration Tab
-Configure your batch, semester dates, and holidays with ease.
-
-![Setup Tab](setup_tab.png)
-
----
-
-### 📋 Weekly Timetable View
-Your complete weekly schedule at a glance - color-coded for easy reference.
-
-![Timetable Tab](timetable_tab.png)
-
----
-
-### 📅 Mark Attendance Calendar
-Google Calendar-style interface for effortless attendance marking. Left-click for individual subjects, right-click to mark entire day absent!
-
-![Mark Attendance Tab](mark_attendance_tab.png)
-
----
-
-
-
-## �🚀 Getting Started
-
-### Prerequisites
-- Python 3.8 or higher
-- pip (Python package manager)
-- Windows/Mac/Linux (cross-platform compatible!)
-
-### Installation
-
-1. **Clone the repository**
 ```bash
 git clone https://github.com/siddhesh17b/MyAttendance.git
 cd MyAttendance
-```
-
-2. **Install dependencies**
-```bash
 pip install tkcalendar
-```
-
-3. **Run the application**
-```bash
 python app.py
 ```
 
-## 📖 User Guide
+That's it. Windows/Mac/Linux all work.
 
-### First-Time Setup
-1. Launch the application
-2. Select your batch (B1/B3 or B2/B4)
-3. The app will automatically initialize all subjects from the timetable
+---
 
-### Setup Tab ⚙️
-- **Batch Selection**: Choose your batch (supports custom batch names via CSV)
-- **Semester Dates**: Set start and end dates using calendar widgets
-- **Holiday Management**: Add/remove holiday periods with names
-  - "Add Holiday Period" button opens centered dialog (500x650)
-  - Scrollable with mouse wheel support
-  - Calendar widgets for easy date selection
-- **Skipped Days Management**: ✨ **NEW!** Add date ranges when completely absent (sick leave, etc.)
-  - "Add Skipped Period" button opens centered dialog (500x700)
-  - Scrollable with mouse wheel support
-  - Automatically marks all classes as absent for the period
-  - Remove period with option to restore attendance
-- **Custom Timetable Management**:
-  - 📥 Import Custom Timetable (CSV)
-  - 📤 Export Timetable Template
-  - 🔄 Reset to Default
-- **Reset Data**: Clear all holidays, skipped days, and absent dates (preserves batch and semester dates)
+## First Time Setup (Do This ONCE)
 
-### Timetable Tab 📋
-- View your weekly schedule in a color-coded grid
-- Theory classes (Blue), Lab sessions (Purple), Others (Orange)
-- Shows correct labs based on your batch selection
-- Read-only display for reference
+### Step 1: Set Your Timetable
 
-### Mark Attendance Tab 📅
-- **Monthly Calendar View**: Navigate using Prev/Next/Today buttons
-- **Color-Coded Days**:
-  - 🟢 Light Green: All classes present
-  - 🔴 Light Red: Some classes marked absent
-  - 🔴 Dark Red (#EF5350): Completely skipped (ALL classes absent)
-  - 🟡 Light Yellow: Holiday
-  - 🔵 Light Blue: Today
-  - ⚪ Light Gray: Weekend/Future dates
+**Option A: Use Your Own Timetable (Recommended)**
+1. Open app → Go to **Setup Tab**
+2. Click **"📤 Export Timetable Template"** - saves a CSV file
+3. Open the CSV in Excel/Notepad
+4. Edit it with YOUR timetable (see format below)
+5. Click **"📥 Import Custom Timetable"**
+6. Select your batch (B1/B3 or B2/B4 or whatever your college uses)
 
-#### Marking Attendance
-1. **Individual Subjects**:
-   - Left-click any date
-   - View subjects in side panel
-   - Uncheck subjects to mark absent
-   - Click "Save Attendance"
+**CSV Format:**
+```csv
+Day,Time,Subject
+MONDAY,09:00-10:00,Data Mining
+MONDAY,10:00-11:00,Algorithms
+MONDAY,11:00-12:00,Lunch Break
+WEDNESDAY,03:00-05:00,Lab (B1&B3) / Different Lab (B2&B4)
+```
+- Day: MONDAY to SATURDAY (uppercase)
+- Time: Any format you want (08:00-09:00, 2:30-3:30 PM, whatever)
+- Subject: Any name. For different labs per batch use `Subject1 (B1&B3) / Subject2 (B2&B4)`
 
-2. **Entire Day** (Right-Click):
-   - Right-click any date
-   - Instantly marks ALL classes as absent
-   - No confirmation needed - fast and efficient!
-   - UI hint in calendar header explains right-click functionality
+**Option B: Use Default Timetable**
+1. Select your batch (B1/B3 or B2/B4)
+2. App loads default timetable automatically
+3. You can export → edit → import later
 
-3. **Holidays**:
-   - Left-click a date
-   - Click "🏖️ Mark as Holiday" button
-   - Toggle back to regular day anytime
+### Step 2: Set Semester Dates
+1. Setup Tab → Pick semester start date
+2. Pick semester end date
+3. Done.
 
-4. **Bulk Skipped Days** (Sick Leave):
-   - Go to Setup Tab → Skipped Days section
-   - Add date range (e.g., 5 consecutive sick days)
-   - All classes automatically marked absent for entire period
-   - Shows as dark red in calendar
+### Step 3: Mark Attendance
+Go to **"Mark Attendance"** tab. That's your main screen.
 
-### Summary Tab 📊
-- View all subjects with attendance percentages
-- Columns: Subject | Present | Total | Attendance % | Status | Safe to Skip | Action
-- **Manual Override**: Double-click any subject to manually set total and attended classes
-  - Useful for cancelled/rescheduled classes, extra lectures, make-up classes
-  - Visual indicator shows when manual data is active
-  - Clear override to return to automatic calculation
-- Quick stats cards showing overall performance
-- Export detailed reports with timestamp
+---
 
-## 📁 Project Structure
+## Daily Use (10 seconds)
+
+### Calendar Tab - Your Main Screen
+
+**Left-click a date** → Uncheck subjects you were absent → Save  
+**Right-click a date** → Marks entire day absent instantly
+
+**Colors mean:**
+- 🟢 Green = All present
+- 🔴 Red = Some/all absent  
+- 🟡 Yellow = Holiday
+- Gray = Future dates
+
+### Summary Tab - See Your Status
+
+Shows all subjects with:
+- Present/Total classes
+- Percentage (must stay ≥75%)
+- How many more you can skip
+- Visual progress bars (🟢 = safe, 🔴 = danger)
+
+**Double-click any subject** → Manually set attendance (for cancelled classes, make-up lectures, etc.)
+
+---
+
+## Common Tasks
+
+### Add Holidays
+Setup Tab → Add Holiday Period → Pick dates → Save
+
+### Mark Sick Leave (Multiple Days)
+Setup Tab → Add Skipped Period → Pick date range → Auto-marks all classes absent
+
+### Reset Everything (New Semester)
+Setup Tab → Reset Data → Confirms → Fresh start (keeps your timetable)
+
+### Reset Timetable Too
+Setup Tab → Reset to Default → Loads hardcoded timetable → Then export/edit/import your own
+
+### Change Timetable Mid-Semester
+1. Export current → Edit CSV → Import
+2. Or click "Reset to Default" first, then import yours
+
+---
+
+## Key Features
+
+- **You're present by default** - Only click when absent (saves time)
+- **Right-click = absent entire day** - Fast when you skip everything
+- **Visual dashboard** - Instantly see safe/danger subjects
+- **Manual override** - Fix attendance when classes get cancelled/rescheduled
+- **Smart batch filtering** - Upload 1 timetable with both batches, app shows only your classes
+- **Works offline** - No internet, no account, data stored locally
+- **Fast** - Updates instantly, no lag
+
+---
+
+## File Structure
 
 ```
 MyAttendance/
-├── 📄 app.py                  # Main entry point (window setup, tabs)
-├── 📊 data_manager.py         # Timetable data, JSON persistence
-├── 🧮 calculations.py         # Attendance calculations, date math
-├── ⚙️ setup_tab.py            # Configuration interface
-├── 📋 timetable_tab.py        # Weekly schedule display
-├── 📅 attendance_calendar.py  # Monthly calendar interface
-├── 📈 summary_tab.py          # Statistics dashboard
-├── 💾 data.json               # User data (auto-generated)
-├── 📝 timetable.md            # Timetable reference
-├── 📖 README.md               # This file
-├── 📚 COMPLETE_GUIDE.md       # Complete guide: CSV format, upload, & implementation
-├── 📋 timetable_template.csv  # Sample CSV template
-└── .gitignore                 # Git ignore rules
+├── app.py                    # Run this
+├── data_manager.py           # Timetable + data handling
+├── calculations.py           # Attendance math
+├── setup_tab.py              # Configuration screen
+├── timetable_tab.py          # Weekly schedule view
+├── attendance_calendar.py    # Main calendar screen
+├── summary_tab.py            # Dashboard with stats
+├── data.json                 # Your data (auto-created)
+└── COMPLETE_GUIDE.md         # Detailed CSV guide
 ```
-
-**Total Code Size**: ~63 KB across 7 Python files
-
-## 🎨 Color Scheme & Visual Language
-
-| Element | Color | Hex Code | Usage |
-|---------|-------|----------|-------|
-| 🟢 Safe Status | Green | `#28a745` | Attendance ≥75% |
-| 🔴 At Risk | Red | `#dc3545` | Attendance <75% |
-| 🔵 Theory Classes | Blue | `#007bff` | DAA, TOC, CN, DM |
-| 🟣 Lab Classes | Purple | `#7B1FA2` | CN Lab, DAA Lab, Software Lab |
-| 🟠 Special Classes | Orange | `#E65100` | Minor, MDM, OE, Honors |
-| 🟡 Holidays | Yellow | `#FFF9C4` | Marked holiday dates |
-| 🔴 Completely Skipped | Dark Red | `#EF5350` | ALL classes absent |
-| ⚪ Future/Weekend | Gray | `#F5F5F5` | Upcoming/non-working days |
-
-## 🧮 Attendance Formula
-
-```python
-# Present by default model
-attended = total_classes - len(absent_dates_until_today)
-attendance_percentage = (attended / total) * 100
-
-# Safe classes to skip
-safe_to_skip = floor((attended - 0.75 * (total + skips)) / 0.25)
-```
-
-## 💾 Data Storage
-
-All data is stored locally in `data.json`:
-```json
-{
-  "batch": "B1/B3",
-  "semester_start": "2025-08-01",
-  "semester_end": "2025-12-15",
-  "holidays": [
-    {"start": "2025-10-20", "end": "2025-10-27", "name": "Diwali Break"}
-  ],
-  "subjects": [
-    {
-      "name": "DM",
-      "weekly_count": 3,
-      "total_override": null,
-      "attendance_override": null,
-      "absent_dates": ["2025-11-15", "2025-11-22"]
-    },
-    {
-      "name": "DAA",
-      "weekly_count": 3,
-      "total_override": null,
-      "attendance_override": {"total": 25, "attended": 20},
-      "absent_dates": []
-    }
-  ]
-}
-```
-
-## 🔧 Customization
-
-### Modifying the Timetable
-Edit the `TIMETABLE_DATA` dictionary in `data_manager.py`:
-```python
-TIMETABLE_DATA = {
-    "MONDAY": {
-        "09:00-10:00": "DM",
-        "10:00-11:00": "DAA",
-        # ... more slots
-    },
-    # ... more days
-}
-```
-
-### Changing the Window Size
-Edit `app.py`:
-```python
-width = 1400
-height = 900
-x = (root.winfo_screenwidth() // 2) - (width // 2)
-y = (root.winfo_screenheight() // 2) - (height // 2)
-self.root.geometry(f"{width}x{height}+{x}+{y}")  # Centered window
-```
-
-## 🐛 Troubleshooting
-
-### Issue: Calendar not displaying
-**Solution**: Install tkcalendar
-```bash
-pip install tkcalendar
-```
-
-### Issue: Data not saving
-**Solution**: Check file permissions in the application directory
-
-### Issue: Wrong lab classes showing
-**Solution**: Verify batch selection in Setup tab (B1/B3 vs B2/B4)
-
-## �️ Tech Stack
-
-| Category | Technology | Purpose |
-|----------|-----------|---------|
-| **Language** | Python 3.8+ | Core programming language |
-| **GUI Framework** | Tkinter/ttk | Desktop interface |
-| **Date Widgets** | tkcalendar | Calendar components |
-| **Data Storage** | JSON | Local data persistence |
-| **Date/Time** | datetime, calendar | Date calculations |
-| **Design Pattern** | Modular MVC-like | Clean architecture |
-
-### Why This Stack?
-- ✅ **Lightweight**: < 100 KB total size
-- ✅ **Fast**: Native GUI performance
-- ✅ **Cross-platform**: Works on Windows, Mac, Linux
-- ✅ **Offline**: No internet required
-- ✅ **Simple**: Minimal dependencies
-- ✅ **Maintainable**: Clean, readable code
-
-## 📝 Development
-
-### Code Architecture
-```
-┌─────────────────┐
-│   app.py        │  ← Entry point, window setup
-│  (Main Window)  │
-└────────┬────────┘
-         │
-    ┌────┴─────────────────────────┐
-    │                               │
-┌───▼────┐                   ┌─────▼────┐
-│  UI    │                   │  Core    │
-│ Tabs   │◄──────────────────┤ Modules  │
-└────────┘                   └──────────┘
-│                               │
-├─ setup_tab.py               ├─ data_manager.py
-├─ timetable_tab.py           ├─ calculations.py
-├─ attendance_calendar.py     └─ data.json
-└─ summary_tab.py
-```
-
-### Key Design Principles
-- **Present by Default**: Only track absences (saves time!)
-- **Real-time Updates**: Instant recalculation on changes
-- **Atomic Operations**: Auto-save after each action
-- **Smart Batch Filtering**: Upload complete timetable once, app filters by selected batch
-- **Batch-Aware Display**: Different labs shown for B1/B3 vs B2/B4 automatically
-- **User Confirmation**: Dialogs for critical actions
-- **Clean Code**: Proper spacing, comments, docstrings
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🌟 Key Highlights
-
-<table>
-<tr>
-<td width="50%">
-
-### 💪 Powerful Features
-- 📊 **Real-time Calculations**
-- 🎯 **75% Threshold Tracker**
-- 📅 **Google Calendar UI**
-- 🖱️ **Right-click Quick Mark**
-- 🔄 **One-click Reset**
-
-</td>
-<td width="50%">
-
-### 🚀 User Benefits
-- ⏱️ **Saves Time**: Mark absences only
-- 🎓 **Stay on Track**: Visual warnings
-- 📈 **Plan Ahead**: Safe skip calculator
-- 💾 **Secure**: Local data storage
-- 🖥️ **Offline**: No internet needed
-
-</td>
-</tr>
-</table>
-
-## 👨‍💻 Author
-
-**Siddhesh Bisen**
-- 🎓 Software Lab Project - 3rd Semester
-- 💻 Python Developer | Student
-- � GitHub: [@siddhesh17b](https://github.com/siddhesh17b)
-- � Repository: [MyAttendance](https://github.com/siddhesh17b/MyAttendance)
-
-## 🎁 What's In It For You?
-
-### For Students 🎓
-- **Save Hours**: No more manual attendance tracking
-- **Stay Safe**: Never accidentally drop below 75%
-- **Plan Smart**: Know exactly when you can take a break
-- **Zero Hassle**: One-time 1-minute setup, use all semester
-
-### For Developers �
-- **Clean Code**: Well-documented, easy to understand
-- **Modular Design**: Perfect for learning Python GUI development
-- **Extend Easily**: Add features, customize for your needs
-- **Portfolio Project**: Showcase real-world problem-solving
 
 ---
 
-## �🙏 Acknowledgments
+## Troubleshooting
 
-- 🐍 Built with love using **Python** and **Tkinter**
-- 📅 Powered by **tkcalendar** for beautiful date widgets
-- 💡 Inspired by **Google Calendar's** intuitive interface
-- 🎨 Professional color scheme based on Bootstrap
-- � Created to solve a real student problem
+**App won't start:** Install tkcalendar → `pip install tkcalendar`
 
----
+**Wrong labs showing:** Check batch selection (Setup Tab)
 
-## ⭐ Show Your Support
+**Data not saving:** Run app with file write permissions
 
-### Love MyAttendance? Here's how you can help:
+**Want fresh start:** Setup Tab → Reset Data (or delete data.json)
 
-<table>
-<tr>
-<td align="center">
-  <h3>⭐</h3>
-  <b>Star this repo</b><br>
-  Show your appreciation
-</td>
-<td align="center">
-  <h3>🐛</h3>
-  <b>Report bugs</b><br>
-  Help improve the app
-</td>
-<td align="center">
-  <h3>💡</h3>
-  <b>Suggest features</b><br>
-  Share your ideas
-</td>
-<td align="center">
-  <h3>🔧</h3>
-  <b>Contribute code</b><br>
-  Make it even better
-</td>
-</tr>
-</table>
-
-### Join the Community!
-- 📢 **Share** with your classmates - Help them track attendance too!
-- 🐦 **Tweet** about it - Tag [@siddhesh17b](https://github.com/siddhesh17b)
-- 💬 **Discuss** features - Open an issue for ideas
-- 🌟 **Follow** for updates - Stay tuned for new features
+**CSV import fails:** Check format - Day must be MONDAY-SATURDAY uppercase, needs Day,Time,Subject columns
 
 ---
 
-<div align="center">
+## Tech
 
-**Made with ❤️ by [Siddhesh Bisen](https://github.com/siddhesh17b)**
+Python 3.8+, Tkinter (built-in), tkcalendar. ~500 lines per file. MIT License.
 
-*Helping students stay on track, one attendance mark at a time* 🎓
-
-[⬆ Back to Top](#myattendance---smart-attendance-tracker)
-
-</div>
-
-## 📞 Support
-
-For issues or questions:
-1. Check the Troubleshooting section in this README
-2. Review `COMPLETE_GUIDE.md` for detailed CSV format and upload instructions
-3. Use the Export Template feature to see correct CSV structure
-4. Check existing issues on [GitHub](https://github.com/siddhesh17b/MyAttendance/issues)
+**Made by:** Siddhesh Bisen ([@siddhesh17b](https://github.com/siddhesh17b))  
+**Why:** College project + actually needed this myself
 
 ---
 
-**Note**: This application is designed for educational purposes to help students track their attendance effectively. Always verify your actual attendance with your institution's official records.
+## Support
+
+- Check `COMPLETE_GUIDE.md` for detailed CSV format
+- Export Template to see example
+- [GitHub Issues](https://github.com/siddhesh17b/MyAttendance/issues)
+
+## Screenshots
+
+![Setup Tab](setup_tab.png)
+![Timetable Tab](timetable_tab.png)
+![Calendar Tab](mark_attendance_tab.png)
