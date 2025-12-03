@@ -25,7 +25,7 @@ That's it. Windows/Mac/Linux all work.
 3. Open the CSV in Excel/Notepad
 4. Edit it with YOUR timetable (see format below)
 5. Click **"📥 Import Custom Timetable"**
-6. Select your batch (B1/B3 or B2/B4 or whatever your college uses)
+6. Select your batch - **auto-detected from your timetable** (Group A, B1/B3, etc.)
 
 **CSV Format:**
 ```csv
@@ -37,12 +37,14 @@ WEDNESDAY,03:00-05:00,Lab (B1&B3) / Different Lab (B2&B4)
 ```
 - Day: MONDAY to SATURDAY (uppercase)
 - Time: Any format you want (08:00-09:00, 2:30-3:30 PM, whatever)
-- Subject: Any name. For different labs per batch use `Subject1 (B1&B3) / Subject2 (B2&B4)`
+- Subject: Any name. For batch-specific classes use `Subject1 (Group A) / Subject2 (Group B)` or `Lab (B1&B3) / Lab (B2&B4)`
+- Batch names in parentheses are **auto-detected** - use any naming you want!
 
 **Option B: Use Default Timetable**
-1. Select your batch (B1/B3 or B2/B4)
-2. App loads default timetable automatically
-3. You can export → edit → import later
+1. App auto-detects batches from timetable (defaults to B1/B3 or B2/B4)
+2. Select your batch from detected options
+3. App loads timetable automatically
+4. You can export → edit → import later
 
 ### Step 2: Set Semester Dates
 1. Setup Tab → Pick semester start date
@@ -62,11 +64,11 @@ Go to **"Mark Attendance"** tab. That's your main screen.
 **Right-click a date** → Toggles entire day (absent ↔ present)
 
 **Colors mean:**
-- 🟢 Green = All present
-- 🔴 Light Red = Some absent
+- ⚪ White = All present
+- 🌸 Pink = Some absent
 - 🔴 Dark Red = All absent (completely skipped)
 - 🟡 Yellow = Holiday
-- Gray = Future dates
+- Gray = Sunday/Future dates
 
 **Right-click to toggle:** Present → All absent → Present (quick undo!)
 
@@ -106,9 +108,11 @@ Setup Tab → Reset to Default → Loads hardcoded timetable → Then export/edi
 
 - **You're present by default** - Only click when absent (saves time)
 - **Right-click = absent entire day** - Fast when you skip everything
-- **Visual dashboard** - Instantly see safe/danger subjects
+- **Holidays ignored** - Holiday dates don't count as absences OR reduce total classes
+- **Visual dashboard** - Instantly see safe/danger subjects with color-coded progress bars
 - **Manual override** - Fix attendance when classes get cancelled/rescheduled
-- **Smart batch filtering** - Upload 1 timetable with both batches, app shows only your classes
+- **Dynamic batch detection** - App auto-detects Group A/B or B1/B3 naming from your timetable
+- **Unique subject colors** - Each subject in timetable gets a distinct color for easy identification
 - **Works offline** - No internet, no account, data stored locally
 - **Fast** - Updates instantly, no lag
 

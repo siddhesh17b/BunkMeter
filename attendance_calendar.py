@@ -18,13 +18,13 @@ from datetime import datetime, date
 from data_manager import get_app_data, save_data, get_subjects_for_day
 
 # Color scheme for day status
-COLOR_PRESENT = "#E8F5E9"  # Light green - all classes present
-COLOR_ABSENT = "#FFEBEE"   # Light red - some classes absent
+COLOR_PRESENT = "#C8E6C9"  # Light green - all classes present
+COLOR_ABSENT = "#80DEEA"   # Cyan - some classes absent
 COLOR_SKIPPED = "#EF5350"  # Dark red - ALL classes absent (completely skipped)
 COLOR_HOLIDAY = "#FFF9C4"  # Light yellow - holiday
 COLOR_TODAY = "#E3F2FD"    # Light blue - current day
 COLOR_WEEKEND = "#F5F5F5"  # Light gray - weekend
-COLOR_FUTURE = "#FAFAFA"   # Very light gray - future dates
+COLOR_FUTURE = "#FFFFFF"   # White - future dates
 
 
 class AttendanceCalendar:
@@ -137,16 +137,16 @@ class AttendanceCalendar:
         legend_frame = ttk.LabelFrame(parent, text="Legend", padding=10)
         legend_frame.grid(row=2, column=0, columnspan=2, sticky=(tk.W, tk.E), padx=10, pady=10)
         
-        legends = [
+        legend_items = [
             ("All Present", COLOR_PRESENT),
             ("Some Absent", COLOR_ABSENT),
             ("Completely Skipped", COLOR_SKIPPED),
             ("Holiday", COLOR_HOLIDAY),
             ("Today", COLOR_TODAY),
-            ("Sunday/Future", COLOR_WEEKEND)
+            ("Sunday/Future", COLOR_FUTURE)
         ]
         
-        for idx, (label, color) in enumerate(legends):
+        for idx, (label, color) in enumerate(legend_items):
             frame = ttk.Frame(legend_frame)
             frame.pack(side=tk.LEFT, padx=10)
             
@@ -185,6 +185,14 @@ class AttendanceCalendar:
         """Handle date click - show subjects for that date"""
         app_data = get_app_data()
         
+        # Validate semester dates
+        semester_start = app_data.get("semester_start")
+        semester_end = app_data.get("semester_end")
+        if semester_start and semester_end:
+            if not (semester_start <= date_str <= semester_end):
+                messagebox.showinfo("Info", "Cannot mark attendance outside semester period")
+                return
+        
         # Get subjects for this day
         try:
             date_obj = datetime.strptime(date_str, "%Y-%m-%d")
@@ -209,6 +217,14 @@ class AttendanceCalendar:
     def on_date_right_clicked(self, date_str):
         """Handle right-click on date - toggle between all absent and all present"""
         app_data = get_app_data()
+        
+        # Validate semester dates
+        semester_start = app_data.get("semester_start")
+        semester_end = app_data.get("semester_end")
+        if semester_start and semester_end:
+            if not (semester_start <= date_str <= semester_end):
+                messagebox.showinfo("Info", "Cannot mark attendance outside semester period")
+                return
         
         # Get subjects for this day
         try:

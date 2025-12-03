@@ -50,13 +50,19 @@ For labs where batches have different subjects:
 ```csv
 Day,Time,Subject
 WEDNESDAY,03:00-04:00,CN Lab (B1&B3) / DAA Lab (B2&B4)
+THURSDAY,01:00-02:30,Physics Lab (Group A) / Chemistry Lab (Group B)
 ```
 
-App shows:
+**App auto-detects batch names from your CSV!**
+- Extracts batch names from parentheses: `(B1&B3)`, `(Group A)`, `(Section X)`, etc.
+- First-time setup shows YOUR batch names, not hardcoded B1/B3
+- Works with ANY naming convention your college uses
+
+App behavior:
+- Group A students see: Physics Lab
+- Group B students see: Chemistry Lab
 - B1/B3 students see: CN Lab
 - B2/B4 students see: DAA Lab
-
-Works with custom batch names too: `(GroupA) / (GroupB)`
 
 ---
 

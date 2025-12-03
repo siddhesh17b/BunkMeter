@@ -113,15 +113,12 @@ def parse_timetable_csv(batch):
                     continue
                 subject = extract_subject_name(cell_value)
                 if subject:
-                    if "/" in cell_value and ("B1&B3" in cell_value or "B2&B4" in cell_value):
+                    if "/" in cell_value and "(" in cell_value:
+                        # Dynamic batch matching - extract batch name from parentheses
                         parts = cell_value.split("/")
                         for part in parts:
-                            if batch in ["B1/B3", "B1", "B3"] and "B1&B3" in part:
-                                lab_subject = extract_subject_name(part.split("(")[0])
-                                if lab_subject:
-                                    subject_counts[lab_subject] += 1
-                                    break
-                            elif batch in ["B2/B4", "B2", "B4"] and "B2&B4" in part:
+                            # Check if this part contains the current batch name
+                            if f"({batch})" in part or batch in part:
                                 lab_subject = extract_subject_name(part.split("(")[0])
                                 if lab_subject:
                                     subject_counts[lab_subject] += 1
@@ -150,15 +147,11 @@ def get_subjects_for_day(day_name, batch):
                 continue
             subject = extract_subject_name(cell_value)
             if subject:
-                if "/" in cell_value and ("B1&B3" in cell_value or "B2&B4" in cell_value):
+                if "/" in cell_value and "(" in cell_value:
+                    # Dynamic batch matching
                     parts = cell_value.split("/")
                     for part in parts:
-                        if batch in ["B1/B3", "B1", "B3"] and "B1&B3" in part:
-                            lab_subject = extract_subject_name(part.split("(")[0])
-                            if lab_subject and lab_subject not in subjects:
-                                subjects.append(lab_subject)
-                                break
-                        elif batch in ["B2/B4", "B2", "B4"] and "B2&B4" in part:
+                        if f"({batch})" in part or batch in part:
                             lab_subject = extract_subject_name(part.split("(")[0])
                             if lab_subject and lab_subject not in subjects:
                                 subjects.append(lab_subject)

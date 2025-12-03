@@ -27,7 +27,6 @@ class TimetableTab:
         self.batch_label = ttk.Label(title_frame, text="", font=("Segoe UI", 10))
         self.batch_label.grid(row=1, column=0, sticky=tk.W, pady=(5, 0))
         self.create_timetable_view()
-        self.create_legend()
         self.refresh()
         return self.frame
     
@@ -53,14 +52,6 @@ class TimetableTab:
         def _on_mousewheel(event):
             canvas.yview_scroll(int(-1*(event.delta/120)), "units")
         canvas.bind_all("<MouseWheel>", _on_mousewheel)
-        
-    def create_legend(self):
-        legend_frame = ttk.LabelFrame(self.frame, text="Legend", padding="10")
-        legend_frame.grid(row=2, column=0, sticky=(tk.W, tk.E))
-        legends = [("Theory", "#E3F2FD"), ("Lab", "#F3E5F5"), ("Minor/MDM/OE/Honors", "#FFF3E0"), ("Break", "#F5F5F5")]
-        for idx, (label, bg) in enumerate(legends):
-            tk.Label(legend_frame, text="  ", bg=bg, relief="solid", borderwidth=1, width=3).grid(row=0, column=idx*2, padx=(0, 5))
-            ttk.Label(legend_frame, text=label).grid(row=0, column=idx*2+1, padx=(0, 20))
     
     def refresh(self):
         app_data = get_app_data()
@@ -140,12 +131,32 @@ class TimetableTab:
         return cell_value.strip()
     
     def get_subject_colors(self, subject, time_slot):
+        """Get unique color for each subject using hash-based color generation"""
         if subject in ["BREAK", "LUNCH"]:
             return "#F5F5F5", "#757575"
         if not subject:
             return "#FFFFFF", "#000000"
-        if "Lab" in subject:
-            return "#F3E5F5", "#7B1FA2"
-        if any(k in subject for k in ["Minor", "MDM", "OE", "HONORS"]):
-            return "#FFF3E0", "#E65100"
-        return "#E3F2FD", "#1976D2"
+        
+        # Generate unique color based on subject name with better distribution
+        import colorsys
+        
+        # Use multiple hash components for better color distribution
+        hash1 = hash(subject)
+        hash2 = hash(subject[::-1])  # Reverse string hash
+        hash3 = sum(ord(c) for c in subject)
+        
+        # Combine hashes for better hue distribution (0-360)
+        hue = ((hash1 * 37 + hash2 * 17 + hash3 * 7) % 360) / 360.0
+        
+        # Use higher saturation and medium-high value for more distinct colors
+        saturation = 0.6 + ((hash2 % 20) / 100.0)  # 0.6-0.8
+        value = 0.85 + ((hash3 % 10) / 100.0)      # 0.85-0.95
+        
+        rgb = colorsys.hsv_to_rgb(hue, saturation, value)
+        bg_color = "#{:02x}{:02x}{:02x}".format(int(rgb[0] * 255), int(rgb[1] * 255), int(rgb[2] * 255))
+        
+        # Generate contrasting text color
+        text_rgb = colorsys.hsv_to_rgb(hue, min(1.0, saturation + 0.2), 0.3)
+        fg_color = "#{:02x}{:02x}{:02x}".format(int(text_rgb[0] * 255), int(text_rgb[1] * 255), int(text_rgb[2] * 255))
+        
+        return bg_color, fg_color

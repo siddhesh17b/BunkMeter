@@ -51,30 +51,102 @@ class BunkBuddyApp:
         """Show setup wizard for first-time users"""
         setup_window = tk.Toplevel(self.root)
         setup_window.title("Welcome to MyAttendance!")
-        setup_window.geometry("400x200")
+        setup_window.geometry("500x350")
         setup_window.transient(self.root)
         setup_window.grab_set()
         
         # Center the window
         setup_window.update_idletasks()
-        width = 400
-        height = 200
+        width = 500
+        height = 350
         x = (setup_window.winfo_screenwidth() // 2) - (width // 2)
         y = (setup_window.winfo_screenheight() // 2) - (height // 2)
         setup_window.geometry(f"{width}x{height}+{x}+{y}")
         
         tk.Label(setup_window, text="Welcome to MyAttendance!", font=("Arial", 14, "bold")).pack(pady=10)
-        tk.Label(setup_window, text="Please select your batch:", font=("Arial", 11)).pack(pady=5)
         
-        batch_var = tk.StringVar(value="B1/B3")
-        ttk.Radiobutton(setup_window, text="B1/B3", variable=batch_var, value="B1/B3").pack()
-        ttk.Radiobutton(setup_window, text="B2/B4", variable=batch_var, value="B2/B4").pack()
+        # Import timetable section
+        import_frame = ttk.LabelFrame(setup_window, text="Step 1: Import Your Timetable (Optional)", padding=10)
+        import_frame.pack(fill=tk.X, padx=20, pady=10)
+        
+        tk.Label(import_frame, text="Upload your CSV timetable to auto-detect batches", font=("Arial", 9)).pack()
+        
+        def import_timetable_firsttime():
+            from data_manager import import_timetable_from_csv
+            from tkinter import filedialog
+            filepath = filedialog.askopenfilename(
+                title="Import Custom Timetable",
+                filetypes=[("CSV files", "*.csv"), ("All files", "*.*")]
+            )
+            if filepath:
+                if import_timetable_from_csv(filepath):
+                    # Refresh batch detection
+                    update_batch_options()
+        
+        ttk.Button(import_frame, text="📥 Import Timetable CSV", command=import_timetable_firsttime).pack(pady=5)
+        
+        # Batch selection section
+        batch_frame = ttk.LabelFrame(setup_window, text="Step 2: Select Your Batch/Group", padding=10)
+        batch_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
+        
+        batch_container = ttk.Frame(batch_frame)
+        batch_container.pack(fill=tk.BOTH, expand=True)
+        
+        batch_var = tk.StringVar()
+        
+        def update_batch_options():
+            # Clear existing radio buttons
+            for widget in batch_container.winfo_children():
+                widget.destroy()
+            
+            # Detect batch names from timetable dynamically
+            from data_manager import get_active_timetable
+            import re
+            active_timetable = get_active_timetable()
+            batch_names = set()
+            
+            for day_data in active_timetable.values():
+                for cell_value in day_data.values():
+                    if "/" in cell_value and "(" in cell_value:
+                        # Extract batch names from format like "Subject (Group A) / Subject (Group B)"
+                        matches = re.findall(r'\(([^)]+)\)', cell_value)
+                        batch_names.update(matches)
+            
+            # If no batch names found, use default B1/B3 and B2/B4
+            if not batch_names:
+                batch_names = ["B1/B3", "B2/B4"]
+            else:
+                batch_names = sorted(list(batch_names))
+            
+            batch_var.set(batch_names[0] if batch_names else "B1/B3")
+            
+            for batch_name in batch_names:
+                ttk.Radiobutton(batch_container, text=batch_name, variable=batch_var, value=batch_name).pack(anchor=tk.W, pady=2)
+        
+        # Initial batch detection
+        update_batch_options()
         
         def save_and_close():
-            app_data = get_app_data()
-            app_data["batch"] = batch_var.get()
+            from tkinter import messagebox
+            
+            selected_batch = batch_var.get()
+            if not selected_batch:
+                messagebox.showerror("Error", "Please select a batch/group before continuing!")
+                return
+            
             # Initialize subjects from timetable
-            weekly_counts = parse_timetable_csv(app_data["batch"])
+            weekly_counts = parse_timetable_csv(selected_batch)
+            
+            if not weekly_counts:
+                messagebox.showerror(
+                    "Error", 
+                    f"No subjects found for batch '{selected_batch}'!\n\n"
+                    f"Please import a valid timetable or check your batch selection."
+                )
+                return
+            
+            app_data = get_app_data()
+            app_data["batch"] = selected_batch
             app_data["subjects"] = [
                 {
                     "name": subject,
@@ -88,7 +160,7 @@ class BunkBuddyApp:
             save_data()
             setup_window.destroy()
         
-        ttk.Button(setup_window, text="Continue", command=save_and_close).pack(pady=20)
+        ttk.Button(setup_window, text="Continue", command=save_and_close).pack(pady=10)
         
         self.root.wait_window(setup_window)
     

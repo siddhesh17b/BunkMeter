@@ -12,14 +12,17 @@ from tkcalendar import Calendar
 from datetime import datetime
 from data_manager import get_app_data, save_data, parse_timetable_csv, \
     export_timetable_to_csv, import_timetable_from_csv, reset_to_default_timetable, \
-    get_subjects_for_day
+    get_subjects_for_day, get_active_timetable
 from calculations import parse_date
+import re
 
 class SetupTab:
     def __init__(self, notebook, refresh_callback):
         self.notebook = notebook
         self.refresh_all_tabs = refresh_callback
         self.batch_var = None
+        self.batch_frame = None
+        self.batch_container = None
         self.start_date_cal = None
         self.end_date_cal = None
         self.holidays_tree = None
@@ -63,14 +66,19 @@ class SetupTab:
         scrollable_frame.columnconfigure(1, weight=1)
         
         # Batch Selection (LEFT)
-        batch_frame = tk.LabelFrame(left_column, text="Batch Selection", 
+        self.batch_frame = tk.LabelFrame(left_column, text="Batch Selection", 
                                     font=("Arial", 11, "bold"), padx=10, pady=10)
-        batch_frame.pack(fill=tk.X, padx=10, pady=10)
+        self.batch_frame.pack(fill=tk.X, padx=10, pady=10)
         
-        self.batch_var = tk.StringVar(value=app_data.get("batch", "B1/B3"))
-        ttk.Radiobutton(batch_frame, text="B1/B3", variable=self.batch_var, value="B1/B3").pack(anchor=tk.W)
-        ttk.Radiobutton(batch_frame, text="B2/B4", variable=self.batch_var, value="B2/B4").pack(anchor=tk.W)
-        ttk.Button(batch_frame, text="Update Batch", command=self.on_batch_update).pack(pady=5)
+        # Container for dynamic batch options
+        self.batch_container = ttk.Frame(self.batch_frame)
+        self.batch_container.pack(fill=tk.X)
+        
+        # Initialize batch selection
+        self.batch_var = tk.StringVar(value=app_data.get("batch", ""))
+        self.update_batch_options()
+        
+        ttk.Button(self.batch_frame, text="Update Batch", command=self.on_batch_update).pack(pady=5)
         
         # Semester Dates (LEFT)
         dates_frame = tk.LabelFrame(left_column, text="Semester Dates", 
@@ -246,12 +254,77 @@ class SetupTab:
         for skipped in app_data.get("skipped_days", []):
             self.skipped_tree.insert("", tk.END, values=(skipped["name"], skipped["start"], skipped["end"]))
     
+    def extract_batch_names(self):
+        """Extract batch names from timetable"""
+        batch_names = set()
+        try:
+            active_timetable = get_active_timetable()
+            for day, time_slots_dict in active_timetable.items():
+                for time_slot, cell_value in time_slots_dict.items():
+                    if not cell_value or "Lunch" in cell_value:
+                        continue
+                    # Extract batch names from parentheses
+                    matches = re.findall(r'\(([^)]+)\)', cell_value)
+                    for match in matches:
+                        # Clean and add batch name
+                        batch_name = match.strip()
+                        if batch_name and batch_name not in ["Lab", "Tutorial"]:
+                            batch_names.add(batch_name)
+        except Exception as e:
+            print(f"Error extracting batch names: {e}")
+        
+        # Fallback to default if no batches found
+        if not batch_names:
+            batch_names = {"B1/B3", "B2/B4"}
+        
+        return sorted(batch_names)
+    
+    def update_batch_options(self):
+        """Update batch selection radio buttons dynamically"""
+        # Clear existing widgets
+        for widget in self.batch_container.winfo_children():
+            widget.destroy()
+        
+        # Get batch names from timetable
+        batch_names = self.extract_batch_names()
+        
+        # Get current batch or default to first option
+        app_data = get_app_data()
+        current_batch = app_data.get("batch", "")
+        
+        # If current batch not in options, default to first
+        if not current_batch or current_batch not in batch_names:
+            self.batch_var.set(batch_names[0])
+        else:
+            self.batch_var.set(current_batch)
+        
+        # Create radio buttons for each batch
+        for batch_name in batch_names:
+            ttk.Radiobutton(
+                self.batch_container, 
+                text=batch_name, 
+                variable=self.batch_var, 
+                value=batch_name
+            ).pack(anchor=tk.W, pady=2)
+    
     def on_batch_update(self):
         app_data = get_app_data()
         new_batch = self.batch_var.get()
+        
+        # Validate batch selection
+        if not new_batch:
+            messagebox.showerror("Error", "Please select a batch/group before updating!")
+            return
+        
         if new_batch != app_data.get("batch"):
             app_data["batch"] = new_batch
             weekly_counts = parse_timetable_csv(new_batch)
+            
+            # Validate that subjects exist for this batch
+            if not weekly_counts:
+                messagebox.showerror("Error", f"No subjects found for batch '{new_batch}'!\nPlease check your timetable.")
+                return
+            
             existing_subjects = {s["name"]: s for s in app_data["subjects"]}
             app_data["subjects"] = []
             for subject, count in weekly_counts.items():
@@ -554,36 +627,50 @@ class SetupTab:
         messagebox.showinfo("Success", "All data has been reset successfully!")
     
     def import_timetable(self):
-        """Import custom timetable from CSV"""
+        """Import custom timetable from CSV and reset all data"""
+        # Confirm reset
+        confirm = messagebox.askyesno(
+            "Confirm Import",
+            "Importing a new timetable will RESET all data:\n\n"
+            "• All attendance records\n"
+            "• All holidays\n"
+            "• All skipped days\n"
+            "• All manual overrides\n\n"
+            "Continue?",
+            icon="warning"
+        )
+        
+        if not confirm:
+            return
+        
         success = import_timetable_from_csv()
         if success:
-            # Reinitialize subjects based on new timetable
+            # Reset ALL data
             app_data = get_app_data()
+            app_data["holidays"] = []
+            app_data["skipped_days"] = []
+            
+            # Reinitialize subjects based on new timetable with fresh data
             batch = app_data.get("batch", "B1/B3")
             subject_counts = parse_timetable_csv(batch)
             
-            # Update or add subjects
-            existing_subjects = {s["name"]: s for s in app_data.get("subjects", [])}
             app_data["subjects"] = []
-            
             for subject_name, weekly_count in subject_counts.items():
-                if subject_name in existing_subjects:
-                    # Preserve existing data
-                    existing_subjects[subject_name]["weekly_count"] = weekly_count
-                    app_data["subjects"].append(existing_subjects[subject_name])
-                else:
-                    # Add new subject
-                    app_data["subjects"].append({
-                        "name": subject_name,
-                        "weekly_count": weekly_count,
-                        "total_override": None,
-                        "attendance_override": None,
-                        "absent_dates": []
-                    })
+                app_data["subjects"].append({
+                    "name": subject_name,
+                    "weekly_count": weekly_count,
+                    "total_override": None,
+                    "attendance_override": None,
+                    "absent_dates": []
+                })
             
             save_data()
+            
+            # Update batch selection UI with new timetable
+            self.update_batch_options()
+            
             self.refresh_all_tabs()
-            messagebox.showinfo("Success", "Custom timetable imported successfully!\nAll tabs have been updated.")
+            messagebox.showinfo("Success", "Timetable imported and all data reset!\nBatch options have been updated.\nPlease select your batch and click 'Update Batch'.")
     
     def export_timetable(self):
         """Export current timetable to CSV template"""
