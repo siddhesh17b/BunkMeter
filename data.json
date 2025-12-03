@@ -1,5 +1,5 @@
 {
-  "batch": "B2/B4",
+  "batch": "B1/B3",
   "semester_start": "2025-07-07",
   "semester_end": "2025-11-04",
   "holidays": [],
@@ -29,7 +29,7 @@
       "absent_dates": []
     },
     {
-      "name": "DAA Lab",
+      "name": "CN Lab",
       "weekly_count": 2,
       "total_override": null,
       "absent_dates": []
@@ -41,7 +41,7 @@
       "absent_dates": []
     },
     {
-      "name": "CN Lab",
+      "name": "DAA Lab",
       "weekly_count": 2,
       "total_override": null,
       "absent_dates": []
