@@ -284,7 +284,16 @@ class SummaryTab:
                     total = calculate_total_classes(subject_data["weekly_count"], weeks)
                 
                 # Calculate present classes (total - absent)
-                absent_count = len(subject_data.get("absent_dates", []))
+                # Exclude dates that fall on holidays from absent count
+                from calculations import parse_date, is_date_in_holidays
+                all_absent_dates = subject_data.get("absent_dates", [])
+                absent_count = 0
+                holidays = app_data.get("holidays", [])
+                for date_str in all_absent_dates:
+                    date_obj = parse_date(date_str)
+                    if date_obj and not is_date_in_holidays(date_obj, holidays):
+                        absent_count += 1
+                
                 present = max(0, total - absent_count)
                 action_text = "✏️ Edit"
             
@@ -325,7 +334,8 @@ class SummaryTab:
         self.summary_tree.tag_configure("risk", background=COLOR_BG_RISK, foreground="#721c24")
         
         # Display enhanced stats cards
-        num_subjects = len(app_data.get("subjects", []))
+        subjects_list = app_data.get("subjects", [])
+        num_subjects = len(subjects_list)
         avg_attendance = total_attendance_pct / num_subjects if num_subjects > 0 else 0
         
         # Determine average color
@@ -439,7 +449,16 @@ class SummaryTab:
                         else:
                             total = calculate_total_classes(subject_data["weekly_count"], weeks)
                         
-                        absent_count = len(subject_data.get("absent_dates", []))
+                        # Exclude dates that fall on holidays from absent count
+                        from calculations import parse_date, is_date_in_holidays
+                        all_absent_dates = subject_data.get("absent_dates", [])
+                        absent_count = 0
+                        holidays = app_data.get("holidays", [])
+                        for date_str in all_absent_dates:
+                            date_obj = parse_date(date_str)
+                            if date_obj and not is_date_in_holidays(date_obj, holidays):
+                                absent_count += 1
+                        
                         present = max(0, total - absent_count)
                     
                     attendance_pct = calculate_attendance(present, total)
@@ -482,6 +501,7 @@ class SummaryTab:
                 break
         
         if not subject_data:
+            messagebox.showerror("Error", "Subject not found")
             return
         
         # Create dialog
@@ -536,7 +556,16 @@ class SummaryTab:
             else:
                 current_total = calculate_total_classes(subject_data["weekly_count"], weeks)
             
-            absent_count = len(subject_data.get("absent_dates", []))
+            # Exclude dates that fall on holidays from absent count
+            from calculations import parse_date, is_date_in_holidays
+            all_absent_dates = subject_data.get("absent_dates", [])
+            absent_count = 0
+            holidays = app_data.get("holidays", [])
+            for date_str in all_absent_dates:
+                date_obj = parse_date(date_str)
+                if date_obj and not is_date_in_holidays(date_obj, holidays):
+                    absent_count += 1
+            
             current_attended = max(0, current_total - absent_count)
         
         # Current data frame

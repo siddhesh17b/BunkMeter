@@ -103,6 +103,9 @@ def extract_subject_name(cell_value):
 def parse_timetable_csv(batch):
     subject_counts = defaultdict(int)
     try:
+        if not batch:
+            return {}
+        
         active_timetable = get_active_timetable()
         for day, time_slots_dict in active_timetable.items():
             for time_slot, cell_value in time_slots_dict.items():
@@ -133,6 +136,9 @@ def parse_timetable_csv(batch):
 
 def get_subjects_for_day(day_name, batch):
     subjects = []
+    if not day_name or not batch:
+        return []
+    
     day_upper = day_name.upper()
     active_timetable = get_active_timetable()
     if day_upper not in active_timetable:

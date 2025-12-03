@@ -437,8 +437,14 @@ class SetupTab:
             
             # Mark all subjects as absent for this period
             from datetime import datetime, timedelta
-            start_date = datetime.strptime(start, "%Y-%m-%d")
-            end_date = datetime.strptime(end, "%Y-%m-%d")
+            try:
+                start_date = datetime.strptime(start, "%Y-%m-%d")
+                end_date = datetime.strptime(end, "%Y-%m-%d")
+            except ValueError:
+                messagebox.showerror("Error", "Invalid date format")
+                dialog.destroy()
+                return
+            
             current = start_date
             batch = app_data.get("batch", "B1/B3")
             
@@ -466,7 +472,7 @@ class SetupTab:
         ttk.Button(scrollable_frame, text="Save", command=save_skipped).pack(pady=10)
     
     def remove_skipped_days(self):
-        """Remove selected skipped period"""
+        """Remove selected skipped period and its absence marks"""
         app_data = get_app_data()
         selected = self.skipped_tree.selection()
         if not selected:
@@ -479,34 +485,28 @@ class SetupTab:
         index = self.skipped_tree.index(selected[0])
         skipped = app_data["skipped_days"][index]
         
-        # Ask if user wants to remove the absence marks too
-        remove_absences = messagebox.askyesno(
-            "Remove Absences?",
-            f"Do you want to remove the absence marks for {skipped['name']}?\n\n"
-            f"From: {skipped['start']}\nTo: {skipped['end']}\n\n"
-            "Yes = Remove both period and absence marks\n"
-            "No = Remove period only (keep absence marks)"
-        )
-        
-        if remove_absences:
-            # Remove absence marks for this period
-            from datetime import datetime, timedelta
+        # Automatically remove absence marks for this period
+        from datetime import datetime, timedelta
+        try:
             start_date = datetime.strptime(skipped["start"], "%Y-%m-%d")
             end_date = datetime.strptime(skipped["end"], "%Y-%m-%d")
-            current = start_date
-            batch = app_data.get("batch", "B1/B3")
+        except ValueError:
+            messagebox.showerror("Error", "Invalid date format in skipped period")
+            return
+        current = start_date
+        batch = app_data.get("batch", "B1/B3")
+        
+        while current <= end_date:
+            date_str = current.strftime("%Y-%m-%d")
+            day_name = current.strftime("%A").upper()
+            subjects = get_subjects_for_day(day_name, batch)
             
-            while current <= end_date:
-                date_str = current.strftime("%Y-%m-%d")
-                day_name = current.strftime("%A").upper()
-                subjects = get_subjects_for_day(day_name, batch)
-                
-                for subject in subjects:
-                    subject_data = next((s for s in app_data["subjects"] if s["name"] == subject), None)
-                    if subject_data and date_str in subject_data.get("absent_dates", []):
-                        subject_data["absent_dates"].remove(date_str)
-                
-                current += timedelta(days=1)
+            for subject in subjects:
+                subject_data = next((s for s in app_data["subjects"] if s["name"] == subject), None)
+                if subject_data and date_str in subject_data.get("absent_dates", []):
+                    subject_data["absent_dates"].remove(date_str)
+            
+            current += timedelta(days=1)
         
         del app_data["skipped_days"][index]
         save_data()

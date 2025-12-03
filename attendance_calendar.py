@@ -182,26 +182,16 @@ class AttendanceCalendar:
         self.refresh()
     
     def on_date_clicked(self, date_str):
-        """Handle left-click on date - show subjects panel"""
+        """Handle date click - show subjects for that date"""
         app_data = get_app_data()
         
-        # Validate semester dates
-        if not app_data.get("semester_start") or not app_data.get("semester_end"):
-            messagebox.showwarning("Warning", "Please set semester dates in Setup tab first")
-            return
-        
-        if not (app_data["semester_start"] <= date_str <= app_data["semester_end"]):
-            messagebox.showinfo("Info", "Selected date is outside semester period")
-            return
-        
-        # Check if future date
-        today = datetime.now().strftime("%Y-%m-%d")
-        if date_str > today:
-            messagebox.showinfo("Info", "Cannot mark attendance for future dates")
-            return
-        
         # Get subjects for this day
-        date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+        try:
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+        except ValueError:
+            messagebox.showerror("Error", "Invalid date format")
+            return
+        
         day_name = date_obj.strftime("%A").upper()
         batch = app_data.get("batch", "B1/B3")
         subjects = get_subjects_for_day(day_name, batch)
@@ -217,11 +207,15 @@ class AttendanceCalendar:
         self.show_subjects_panel(date_str, subjects)
     
     def on_date_right_clicked(self, date_str):
-        """Handle right-click on date - mark all classes as absent"""
+        """Handle right-click on date - toggle between all absent and all present"""
         app_data = get_app_data()
         
         # Get subjects for this day
-        date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+        try:
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+        except ValueError:
+            return
+        
         day_name = date_obj.strftime("%A").upper()
         batch = app_data.get("batch", "B1/B3")
         subjects = get_subjects_for_day(day_name, batch)
@@ -229,14 +223,50 @@ class AttendanceCalendar:
         if not subjects:
             return
         
-        # Mark all subjects as absent for this date
+        # Check if ALL subjects are already absent (completely skipped)
+        all_absent = True
         for subject in subjects:
             subject_data = next((s for s in app_data["subjects"] if s["name"] == subject), None)
             if subject_data:
-                if "absent_dates" not in subject_data:
-                    subject_data["absent_dates"] = []
-                if date_str not in subject_data["absent_dates"]:
-                    subject_data["absent_dates"].append(date_str)
+                if date_str not in subject_data.get("absent_dates", []):
+                    all_absent = False
+                    break
+        
+        # Initialize skipped_days if not exists
+        if "skipped_days" not in app_data:
+            app_data["skipped_days"] = []
+        
+        if all_absent:
+            # Already completely skipped - make all present (remove all absences)
+            for subject in subjects:
+                subject_data = next((s for s in app_data["subjects"] if s["name"] == subject), None)
+                if subject_data and date_str in subject_data.get("absent_dates", []):
+                    subject_data["absent_dates"].remove(date_str)
+            
+            # Remove from skipped_days list
+            app_data["skipped_days"] = [
+                skipped for skipped in app_data["skipped_days"]
+                if not (skipped["start"] == date_str and skipped["end"] == date_str)
+            ]
+        else:
+            # Not completely skipped - mark all subjects as absent
+            for subject in subjects:
+                subject_data = next((s for s in app_data["subjects"] if s["name"] == subject), None)
+                if subject_data:
+                    if "absent_dates" not in subject_data:
+                        subject_data["absent_dates"] = []
+                    if date_str not in subject_data["absent_dates"]:
+                        subject_data["absent_dates"].append(date_str)
+            
+            # Add to skipped_days list (single day)
+            formatted_date = date_obj.strftime("%d %b %Y")
+            if not any(skipped["start"] == date_str and skipped["end"] == date_str 
+                      for skipped in app_data["skipped_days"]):
+                app_data["skipped_days"].append({
+                    "name": f"Right-click: {formatted_date}",
+                    "start": date_str,
+                    "end": date_str
+                })
         
         save_data()
         self.refresh()
@@ -245,6 +275,10 @@ class AttendanceCalendar:
     def show_subjects_panel(self, date_str, subjects):
         """Display subjects with checkboxes in side panel"""
         app_data = get_app_data()
+        
+        if not subjects:
+            self.clear_subjects_panel()
+            return
         
         # Clear panel
         for widget in self.subjects_panel.winfo_children():

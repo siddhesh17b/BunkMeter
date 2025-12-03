@@ -59,13 +59,16 @@ Go to **"Mark Attendance"** tab. That's your main screen.
 ### Calendar Tab - Your Main Screen
 
 **Left-click a date** → Uncheck subjects you were absent → Save  
-**Right-click a date** → Marks entire day absent instantly
+**Right-click a date** → Toggles entire day (absent ↔ present)
 
 **Colors mean:**
 - 🟢 Green = All present
-- 🔴 Red = Some/all absent  
+- 🔴 Light Red = Some absent
+- 🔴 Dark Red = All absent (completely skipped)
 - 🟡 Yellow = Holiday
 - Gray = Future dates
+
+**Right-click to toggle:** Present → All absent → Present (quick undo!)
 
 ### Summary Tab - See Your Status
 
