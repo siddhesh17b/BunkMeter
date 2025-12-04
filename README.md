@@ -54,6 +54,8 @@ It focuses on accuracy (day-by-day counting), minimal input (present-by-default)
 | **Any Batch Names** | Works with B1/B3, Group A/B, Section X, anything |
 | **Any Time Slots** | 8am-9am, 2pm-4pm, any format works |
 | **Manual Override** | Set exact attended/total when auto-calc is wrong |
+| **Semester Progress** | Visual progress bar with days remaining |
+| **Subject Details** | Click any subject to see absent dates & recovery info |
 | **Responsive UI** | Resizes with window, works on any screen |
 | **Offline** | No internet needed, all data stored locally |
 

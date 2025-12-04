@@ -41,14 +41,16 @@ This tab is split into left and right columns.
 - Click **"Save Dates"** after selecting both
 
 #### Holiday Periods
-- List of all holidays (Diwali break, exam week, etc.)
+- List of all holidays with serial numbers (Diwali break, exam week, etc.)
 - **"➕ Add Holiday Period"** → Opens dialog:
   1. Enter holiday name
   2. Pick start date from calendar
   3. Pick end date from calendar
-  4. Click **"Save"**
-- **"➖ Remove Holiday"** → Select a holiday and delete it
+  4. Click **"Save"** - Each day added as separate entry
+- **"➖ Remove Selected"** → Select a holiday and delete it
+- **"🗑️ Remove All"** → Clear all holidays at once (with confirmation)
 - Holidays don't count toward attendance (excluded from total)
+- ⚠️ Holidays must be within semester dates
 
 ### Right Column
 
@@ -62,13 +64,20 @@ This tab is split into left and right columns.
 
 #### Skipped Days (Sick Leave, etc.)
 - Track periods when you were completely absent
+- List shows serial numbers, reason, and date
 - **"➕ Add Skipped Period"** → Opens dialog:
   1. Enter reason (Sick, Personal, etc.)
   2. Pick start date
   3. Pick end date
   4. Click **"Save"**
   - ⚠️ All classes in this period are auto-marked absent
-- **"➖ Remove Skipped Period"** → Removes period AND restores attendance marks
+  - ⚠️ Skips dates that are already holidays
+- **"➖ Remove Selected"** → Removes period AND restores ALL attendance marks
+- **"🗑️ Remove All"** → Clear all skipped days and restore marks (with confirmation)
+
+**Automatic Sync:**
+- When you mark ALL subjects absent via calendar → automatically added here
+- When you mark ANY subject present on a skipped day → automatically removed from here
 
 #### Reset Data
 - **"🔄 Reset All Data"** → Clears:
@@ -146,6 +155,14 @@ Quick toggle for entire day:
 - **Right-click skipped day** → Marks ALL subjects present (removes absences)
 - Also adds/removes entry in "Skipped Days" list in Setup tab
 
+### Calendar ↔ Setup Sync
+The calendar and Setup tab's "Skipped Days" are automatically synchronized:
+- **Right-click to skip** → Entry appears in Setup tab
+- **Right-click to un-skip** → Entry removed from Setup tab
+- **Uncheck ALL subjects & save** → Entry added to Setup tab
+- **Check ANY subject on skipped day & save** → Entry removed from Setup tab
+- **Remove from Setup tab** → All absence marks restored in calendar
+
 ### Restrictions
 - ❌ Cannot mark future dates (shows info message)
 - ❌ Cannot mark dates outside semester period
@@ -160,8 +177,11 @@ Your attendance headquarters.
 
 ### Semester Progress Bar
 - Visual bar showing semester completion %
-- Color changes: Green (early) → Yellow (mid) → Red (ending soon)
-- Shows "X days left" badge
+- Color changes: 🟢 Green (0-50%) → 🟡 Yellow (50-75%) → 🔴 Red (75-100%)
+- Shows **"📆 X days left"** badge with urgency colors:
+  - Green: More than 30 days left
+  - Orange: 14-30 days left
+  - Red: Less than 14 days left
 
 ### Stats Cards (Top Row)
 | Card | Shows |
@@ -189,13 +209,34 @@ Your attendance headquarters.
 - Click again to reverse order
 
 ### Subject Details Panel (Right Side)
-**Single-click any row** to see:
-- Subject name
-- Statistics (attended/total/remaining/weekly count)
-- Status indicator (🟢🟡🔴)
-- **Absent Dates List** - All dates you were absent (scrollable)
-- **Recovery Calculation** - If at risk, shows "Need X more classes to reach 60%"
-- **"✏️ Edit Attendance"** button
+**Single-click any row** to see detailed info in the side panel:
+
+**Header:**
+- Subject name (large, bold)
+- Close button (✕) to hide panel
+
+**Statistics Section:**
+- Classes Attended: X / Y
+- Attendance: XX.X%
+- Can Skip: X classes
+- Weekly Count: Xx/week
+- ⚠️ Warning if manual override is active
+
+**Status Indicator:**
+- 🟢 **Excellent** (≥75%)
+- 🟡 **Safe** (60-74%)
+- 🔴 **At Risk** (<60%)
+
+**Absent Dates List:**
+- Scrollable list of all dates you were absent
+- Shows most recent 15 dates
+- Format: "• Dec 04, 2024 (Wed)"
+
+**Recovery Calculation (At Risk only):**
+- Shows: "📈 Need X more classes without absence to reach 60%"
+
+**Edit Button:**
+- **"✏️ Edit Attendance"** - Opens manual override dialog
 
 ### Manual Override
 **Double-click any row** to open override dialog:
@@ -359,9 +400,12 @@ Delete both files and restart the app for fresh install.
 1. **Mark absences daily** - Easier than remembering later
 2. **Use right-click** for sick days - Faster than clicking each subject
 3. **Check "Can Skip"** before bunking - Know your limits
-4. **Export reports** before exams - Keep a record
-5. **Backup data.json** monthly - Don't lose your data
-6. **Double-click to fix** - Use override when timetable doesn't match reality
+4. **Watch the overall warning** - Red banner appears if average drops below 75%
+5. **Click subjects for details** - See absent dates and recovery calculation
+6. **Export reports** before exams - Keep a record
+7. **Backup data.json** monthly - Don't lose your data
+8. **Double-click to fix** - Use override when timetable doesn't match reality
+9. **Check semester progress** - Days remaining badge shows urgency
 
 ---
 
