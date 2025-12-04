@@ -105,7 +105,7 @@ MONDAY,02:00-04:00,CN Lab (B1&B3) / DAA Lab (B2&B4)
 - Batch-specific: `Subject1 (Batch1) / Subject2 (Batch2)`
 - Skip lunch rows (or name them "Lunch" - they're ignored)
 
-📖 See **[COMPLETE_GUIDE.md](COMPLETE_GUIDE.md)** for full details.
+### 📖 See **[COMPLETE_GUIDE.md](COMPLETE_GUIDE.md)** for full details.
 
 ---
 
