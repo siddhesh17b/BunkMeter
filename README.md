@@ -17,6 +17,26 @@ First run shows a setup wizard. Pick your batch, set semester dates, done.
 
 ---
 
+## Screenshots
+
+### Setup Tab
+Configure your batch, semester dates, holidays, and import custom timetables.
+![Setup Tab](screenshots/setup_tab.png)
+
+### Timetable Tab
+View your weekly schedule with color-coded subjects.
+![Timetable Tab](screenshots/timetable_tab.png)
+
+### Mark Attendance Tab
+Google Calendar-style monthly view. Left-click to mark individual subjects, right-click to mark entire day absent.
+![Mark Attendance Tab](screenshots/mark_attendance_tab.png)
+
+### Summary Tab
+Dashboard with attendance stats, progress bars, and manual override feature. Double-click any subject to override attendance.
+![Summary Tab](screenshots/summery_tab.png)
+
+---
+
 ## What it is
 
 Desktop app to calculate how many classes you can skip while staying above attendance thresholds.
