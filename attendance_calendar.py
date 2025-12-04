@@ -144,12 +144,14 @@ class AttendanceCalendar:
             ("Completely Skipped", COLOR_SKIPPED),
             ("Holiday", COLOR_HOLIDAY),
             ("Today", COLOR_TODAY),
-            ("Sunday/Future", COLOR_FUTURE)
+            ("Future (In Semester)", COLOR_FUTURE_IN_SEM),
+            ("Sunday / Outside Semester", COLOR_FUTURE),
+            ("Weekend (Sunday)", COLOR_WEEKEND)
         ]
         
         for idx, (label, color) in enumerate(legend_items):
             frame = ttk.Frame(legend_frame)
-            frame.pack(side=tk.LEFT, padx=10)
+            frame.pack(side=tk.LEFT, padx=8)
             
             color_box = tk.Label(
                 frame, text="  ", bg=color, 
