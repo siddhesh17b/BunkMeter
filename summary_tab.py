@@ -286,8 +286,6 @@ class SummaryTab:
             # If semester already ended, use semester end date
             calculation_end_date = semester_end
         
-        subject_data_list = []
-        
         for subject_data in app_data.get("subjects", []):
             name = subject_data["name"]
             
@@ -376,7 +374,6 @@ class SummaryTab:
             )
             
             self.summary_tree.item(item, tags=(tag,))
-            subject_data_list.append((name, attendance_pct, present, total))
         
         # Configure tags with background colors
         self.summary_tree.tag_configure("safe", background=COLOR_BG_SAFE, foreground="#155724")

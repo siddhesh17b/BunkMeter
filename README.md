@@ -8,6 +8,17 @@ Most colleges require **75% minimum attendance**. Fall below and you can't sit f
 
 ---
 
+## Quick Start
+
+```bash
+pip install tkcalendar
+python app.py
+```
+
+That's it! The app will guide you through setup on first run.
+
+---
+
 ## What This Does
 
 You tell it your class schedule. It tracks which days you were absent. It tells you:
@@ -23,16 +34,15 @@ You tell it your class schedule. It tracks which days you were absent. It tells 
 Download from [python.org](https://python.org). During install, **check "Add Python to PATH"**.
 
 ### Step 2: Get the App
-Download this folder (green "Code" button → "Download ZIP") and extract it.
-
-### Step 3: Install the Calendar Widget
-Open terminal in the app folder and run:
+```bash
+git clone https://github.com/siddhesh17b/MyAttendance.git
+cd MyAttendance
 ```
+Or: Click green "Code" button → "Download ZIP" → Extract
+
+### Step 3: Install & Run
+```bash
 pip install tkcalendar
-```
-
-### Step 4: Run It
-```
 python app.py
 ```
 
@@ -75,6 +85,8 @@ See all subjects with:
 - Classes you can still skip
 - 🟢 Safe / 🔴 At Risk indicators
 
+**Pro tip:** Double-click any subject to manually override attendance (useful when professor cancels class)
+
 ---
 
 ## Your Weekly Schedule (Timetable Tab)
@@ -89,23 +101,35 @@ View your entire week at a glance. Each subject gets a unique color.
 
 The app has a default timetable built-in. To use your own:
 
-1. Go to **Setup Tab** → Click **Export Timetable Template**
-2. Open the CSV file, edit it with your schedule
-3. Click **Import Custom Timetable** and select your file
+1. Go to **Setup Tab** → Click **Import Custom Timetable**
+2. Select your CSV file
+3. Done!
 
-📖 **[Full Timetable Guide →](COMPLETE_GUIDE.md)** - Detailed CSV format, batch-specific classes, troubleshooting
+### 📁 Sample Timetables Included
 
-### CSV Format (3 columns, no header row):
-```
+The repo includes **ready-to-use test timetables** you can try:
+
+| File | Description |
+|------|-------------|
+| `test_timetable-1.csv` | Full week schedule with Group A / Group B batches |
+| `test_timetable-2.csv` | Alternative timetable format |
+
+Try importing one to see how it works!
+
+### CSV Format (3 columns):
+```csv
+Day,Time,Subject
 MONDAY,09:00-10:00,Mathematics
 MONDAY,10:00-11:00,Physics
 TUESDAY,09:00-10:00,Chemistry
 ```
 
 For batch-specific classes:
+```csv
+MONDAY,02:00-04:00,Physics Lab (Group A) / Chemistry Lab (Group B)
 ```
-MONDAY,02:00-04:00,Physics Lab (B1) / Chemistry Lab (B2)
-```
+
+📖 **[Full Timetable Guide →](COMPLETE_GUIDE.md)** - Detailed format rules, examples, troubleshooting
 
 ---
 
@@ -114,19 +138,42 @@ MONDAY,02:00-04:00,Physics Lab (B1) / Chemistry Lab (B2)
 | Problem | Solution |
 |---------|----------|
 | App won't start | Run `pip install tkcalendar` |
+| `ModuleNotFoundError` | Make sure you're in the app folder when running |
 | Wrong attendance showing | Check semester dates in Setup tab |
-| Subject missing | Your timetable might not have it - import a custom one |
-| Data lost after restart | Make sure `data.json` exists in the app folder |
+| Subject missing | Import a custom timetable with your subjects |
+| Data lost after restart | Normal - `data.json` stores everything |
 
 ---
 
-## Files
+## Files Explained
 
-| File | What it does |
-|------|--------------|
-| `app.py` | Run this to start |
-| `data.json` | Your attendance data (auto-created) |
+| File | Purpose |
+|------|---------|
+| `app.py` | **Run this to start the app** |
+| `data.json` | Your attendance data (auto-created, don't delete!) |
 | `custom_timetable.json` | Your uploaded timetable (if any) |
+| `test_timetable-1.csv` | Sample timetable you can import |
+| `test_timetable-2.csv` | Another sample timetable |
+| `COMPLETE_GUIDE.md` | Detailed timetable CSV format guide |
+
+---
+
+## Features
+
+- ✅ Google Calendar-style monthly view
+- ✅ One-click "mark whole day absent"
+- ✅ Automatic "safe to skip" calculation
+- ✅ Holiday management
+- ✅ Custom timetable import (CSV)
+- ✅ Manual attendance override
+- ✅ Export attendance report
+- ✅ Works offline (no internet needed)
+
+---
+
+## License
+
+MIT License - feel free to use and modify!
 
 ---
 
