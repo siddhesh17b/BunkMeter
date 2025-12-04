@@ -37,12 +37,15 @@ class SetupTab:
         scrollbar = ttk.Scrollbar(tab, orient="vertical", command=canvas.yview)
         scrollable_frame = ttk.Frame(canvas)
         
-        scrollable_frame.bind(
-            "<Configure>",
-            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-        )
+        canvas_window = canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
         
-        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        def _configure_scroll(event):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+            # Make scrollable frame fill canvas width for responsive layout
+            canvas.itemconfig(canvas_window, width=event.width)
+        
+        scrollable_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        canvas.bind("<Configure>", _configure_scroll)
         canvas.configure(yscrollcommand=scrollbar.set)
         
         # Enable mouse wheel scrolling (local binding only)

@@ -674,14 +674,19 @@ class AttendanceCalendar:
                 bg="#ECEFF1", 
                 relief="solid", 
                 borderwidth=1,
-                width=15, 
-                height=2
+                padx=10,
+                pady=8
             )
             label.grid(row=0, column=col, sticky=(tk.W, tk.E, tk.N, tk.S), padx=1, pady=1)
+            self.calendar_frame.columnconfigure(col, weight=1, minsize=80)  # Responsive columns
         
         # Get calendar data for the month
         cal = calendar.monthcalendar(self.current_year, self.current_month)
         today = datetime.now().date()
+        
+        # Configure rows to be responsive (header row + up to 6 week rows)
+        for row in range(7):
+            self.calendar_frame.rowconfigure(row, weight=1, minsize=40)
         
         # Draw date cells
         for week_idx, week in enumerate(cal, start=1):
@@ -750,9 +755,9 @@ class AttendanceCalendar:
                     bg=bg_color, 
                     relief="solid", 
                     borderwidth=1,
-                    cursor="hand2", 
-                    width=15, 
-                    height=5,
+                    cursor="hand2",
+                    padx=10,
+                    pady=20,
                     command=lambda d=date_str: self.on_date_clicked(d)
                 )
                 btn.grid(

@@ -77,10 +77,26 @@ class SummaryTab:
         
         canvas.configure(yscrollcommand=scrollbar.set)
         
-        # Mouse wheel scrolling
-        def _on_mousewheel(event):
+        # Store canvas reference for mousewheel management
+        self.main_canvas = canvas
+        
+        # Mouse wheel scrolling for main dashboard
+        def _on_canvas_mousewheel(event):
             canvas.yview_scroll(int(-1*(event.delta/120)), "units")
-        canvas.bind("<MouseWheel>", _on_mousewheel)
+        
+        def _bind_canvas_mousewheel(event):
+            canvas.bind_all("<MouseWheel>", _on_canvas_mousewheel)
+        
+        def _unbind_canvas_mousewheel(event):
+            canvas.unbind_all("<MouseWheel>")
+        
+        # Store these for use by table area
+        self._bind_canvas_scroll = _bind_canvas_mousewheel
+        self._unbind_canvas_scroll = _unbind_canvas_mousewheel
+        
+        # Bind to canvas to capture mouse entering/leaving
+        canvas.bind("<Enter>", _bind_canvas_mousewheel)
+        canvas.bind("<Leave>", _unbind_canvas_mousewheel)
         
         canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
@@ -129,12 +145,16 @@ class SummaryTab:
         table_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=(0, 10))
         
         # Create a horizontal split: table on left, details panel on right
+        # Use grid for better responsive control
         table_split = tk.Frame(table_container, bg="#ffffff")
         table_split.pack(fill=tk.BOTH, expand=True)
+        table_split.columnconfigure(0, weight=3)  # Table gets 3x space
+        table_split.columnconfigure(1, weight=1, minsize=280)  # Details panel min 280px
+        table_split.rowconfigure(0, weight=1)
         
         # Left side: Table
         table_left = tk.Frame(table_split, bg="#ffffff")
-        table_left.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        table_left.grid(row=0, column=0, sticky=(tk.N, tk.S, tk.E, tk.W))
         
         # Table label
         tk.Label(
@@ -156,21 +176,22 @@ class SummaryTab:
         style.configure("Treeview.Heading", font=("Segoe UI", 11, "bold"))
         
         # Configure column headers with sort functionality
+        # Use minwidth for responsiveness - columns can grow but not shrink below min
         column_configs = {
-            "Subject": (180, "Subject Name", tk.W),
-            "Attended": (90, "Present", tk.CENTER),
-            "Total": (90, "Total", tk.CENTER),
-            "Remaining": (90, "Remaining", tk.CENTER),
-            "Percentage": (100, "Attendance", tk.CENTER),
-            "Progress": (160, "Visual Progress", tk.CENTER),
-            "Status": (110, "Status", tk.CENTER),
-            "Skip": (90, "Can Skip", tk.CENTER),
-            "Action": (120, "Action", tk.CENTER)
+            "Subject": (180, 120, "Subject Name", tk.W),
+            "Attended": (80, 60, "Present", tk.CENTER),
+            "Total": (80, 60, "Total", tk.CENTER),
+            "Remaining": (80, 60, "Remaining", tk.CENTER),
+            "Percentage": (90, 70, "Attendance", tk.CENTER),
+            "Progress": (140, 100, "Visual Progress", tk.CENTER),
+            "Status": (100, 80, "Status", tk.CENTER),
+            "Skip": (80, 60, "Can Skip", tk.CENTER),
+            "Action": (100, 80, "Action", tk.CENTER)
         }
         
-        for col, (width, heading, anchor) in column_configs.items():
+        for col, (width, minwidth, heading, anchor) in column_configs.items():
             self.summary_tree.heading(col, text=heading, command=lambda c=col: self.sort_by_column(c))
-            self.summary_tree.column(col, width=width, anchor=anchor)
+            self.summary_tree.column(col, width=width, minwidth=minwidth, anchor=anchor, stretch=True)
         
         # Scrollbar for table
         tree_scroll = ttk.Scrollbar(table_left, orient="vertical", command=self.summary_tree.yview)
@@ -179,18 +200,33 @@ class SummaryTab:
         self.summary_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(2, 0), pady=(0, 2))
         tree_scroll.pack(side=tk.RIGHT, fill=tk.Y, pady=(0, 2), padx=(0, 2))
         
-        # Right side: Details Panel (320px fixed width for better visibility)
-        self.details_panel = tk.Frame(table_split, bg="#f8f9fa", width=320)
-        self.details_panel.pack(side=tk.RIGHT, fill=tk.Y, padx=(5, 2), pady=2)
-        self.details_panel.pack_propagate(False)  # Fixed width
+        # Right side: Details Panel (responsive with minimum width)
+        self.details_panel = tk.Frame(table_split, bg="#f8f9fa")
+        self.details_panel.grid(row=0, column=1, sticky=(tk.N, tk.S, tk.E, tk.W), padx=(5, 2), pady=2)
         
         # Initial placeholder for details panel
         self.show_details_placeholder()
         
-        # Enable mouse wheel scrolling on treeview
+        # Mouse wheel scrolling for treeview - takes priority over dashboard scroll
         def _on_tree_mousewheel(event):
             self.summary_tree.yview_scroll(int(-1*(event.delta/120)), "units")
-        self.summary_tree.bind("<MouseWheel>", _on_tree_mousewheel)
+            return "break"  # Prevent event from propagating to dashboard
+        
+        def _bind_tree_mousewheel(event):
+            # Unbind dashboard scroll and bind table scroll
+            self.main_canvas.unbind_all("<MouseWheel>")
+            self.summary_tree.bind_all("<MouseWheel>", _on_tree_mousewheel)
+        
+        def _unbind_tree_mousewheel(event):
+            # Unbind table scroll and restore dashboard scroll
+            self.summary_tree.unbind_all("<MouseWheel>")
+            self._bind_canvas_scroll(None)
+        
+        # Bind Enter/Leave on treeview and table container
+        self.summary_tree.bind("<Enter>", _bind_tree_mousewheel)
+        self.summary_tree.bind("<Leave>", _unbind_tree_mousewheel)
+        table_left.bind("<Enter>", _bind_tree_mousewheel)
+        table_left.bind("<Leave>", _unbind_tree_mousewheel)
         
         # Bind double-click to open override dialog
         self.summary_tree.bind("<Double-Button-1>", self.on_row_double_click)
