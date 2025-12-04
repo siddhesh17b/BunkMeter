@@ -230,28 +230,45 @@ class BunkBuddyApp:
             fg="white"
         ).pack(side=tk.LEFT, padx=25, pady=20)
         
-        # Configure ttk style for larger tabs with centered text and white backgrounds
+        # Configure ttk style for modern ribbon-style tabs
         style = ttk.Style()
-        style.configure('TNotebook', tabposition='n', background='#ffffff')
+        style.theme_use('clam')  # Use clam theme for better customization
+        
+        # Configure white backgrounds for frames
         style.configure('TFrame', background='#ffffff')
         style.configure('TLabelframe', background='#ffffff')
         style.configure('TLabelframe.Label', background='#ffffff')
         style.configure('TLabel', background='#ffffff')
+        
+        # Modern notebook styling
+        style.configure('TNotebook', 
+                       background='#ffffff',
+                       borderwidth=0,
+                       tabmargins=[0, 0, 0, 0])
+        
+        # Modern pill-shaped tabs with rounded feel
         style.configure('TNotebook.Tab', 
-                       font=('Segoe UI', 16),
-                       padding=[40, 12],
-                       anchor='center')
+                       font=('Segoe UI', 13, 'bold'),
+                       padding=[35, 14],
+                       background='#f0f4f8',
+                       foreground='#1565c0',
+                       borderwidth=0,
+                       focuscolor='')
+        
         style.map('TNotebook.Tab',
-                 background=[('selected', '#1976d2'), ('!selected', '#e3f2fd')],
-                 foreground=[('selected', '#000000'), ('!selected', "#152fc0")])
+                 background=[('selected', '#1565c0'), ('!selected', '#f0f4f8'), ('active', '#e3f2fd')],
+                 foreground=[('selected', '#ffffff'), ('!selected', '#1565c0')],
+                 expand=[('selected', [0, 0, 0, 2])])  # Slight raise effect for selected
         
-        # Tab control with expand option
+        # Tab control
         self.notebook = ttk.Notebook(self.root)
-        self.notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        self.notebook.pack(fill=tk.BOTH, expand=True, padx=15, pady=(5, 15))
         
-        # Bind event to make tabs expand to fill width
+        # Dynamic tab width adjustment
         def on_notebook_configure(event):
-            style.configure('TNotebook.Tab', width=event.width // 4 - 10)
+            num_tabs = 4
+            tab_width = (event.width - 40) // num_tabs
+            style.configure('TNotebook.Tab', width=tab_width, padding=[tab_width//4, 14])
         self.notebook.bind('<Configure>', on_notebook_configure)
         
         # Create tabs
