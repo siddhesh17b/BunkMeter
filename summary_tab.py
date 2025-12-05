@@ -224,13 +224,26 @@ class SummaryTab:
         # Get all items
         items = [(self.summary_tree.set(item, col), item) for item in self.summary_tree.get_children('')]
         
+        # Helper function for safe numeric conversion
+        def safe_int(val):
+            try:
+                return int(val) if val and val.isdigit() else 0
+            except (ValueError, AttributeError):
+                return 0
+        
+        def safe_float_from_pct(val):
+            try:
+                return float(val.strip('%')) if val and '%' in val else 0.0
+            except (ValueError, AttributeError):
+                return 0.0
+        
         # Sort based on column type
         if col in ("Attended", "Total", "Remaining", "Skip"):
-            items.sort(key=lambda x: int(x[0]) if x[0].isdigit() else 0, reverse=self.sort_reverse)
+            items.sort(key=lambda x: safe_int(x[0]), reverse=self.sort_reverse)
         elif col == "Percentage":
-            items.sort(key=lambda x: float(x[0].strip('%')) if '%' in x[0] else 0, reverse=self.sort_reverse)
+            items.sort(key=lambda x: safe_float_from_pct(x[0]), reverse=self.sort_reverse)
         else:
-            items.sort(reverse=self.sort_reverse)
+            items.sort(key=lambda x: str(x[0]).lower(), reverse=self.sort_reverse)
         
         # Rearrange items
         for index, (val, item) in enumerate(items):

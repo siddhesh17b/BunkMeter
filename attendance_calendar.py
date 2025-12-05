@@ -705,17 +705,25 @@ class AttendanceCalendar:
     
     def is_holiday_date(self, date_str):
         """Check if a date is marked as holiday"""
+        if not date_str:
+            return False
+        
         app_data = get_app_data()
         holidays = app_data.get("holidays", [])
         
         for holiday in holidays:
-            # Support both new format {name, date} and old format {name, start, end}
-            if "date" in holiday:
-                if holiday["date"] == date_str:
-                    return True
-            elif "start" in holiday and "end" in holiday:
-                if holiday["start"] <= date_str <= holiday["end"]:
-                    return True
+            try:
+                # Support both new format {name, date} and old format {name, start, end}
+                if "date" in holiday:
+                    if holiday.get("date") == date_str:
+                        return True
+                elif "start" in holiday and "end" in holiday:
+                    start = holiday.get("start", "")
+                    end = holiday.get("end", "")
+                    if start and end and start <= date_str <= end:
+                        return True
+            except (TypeError, KeyError):
+                continue
         return False
     
     def get_day_status(self, date_str):
@@ -732,7 +740,11 @@ class AttendanceCalendar:
         if self.is_holiday_date(date_str):
             return "holiday"
         
-        date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+        try:
+            date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+        except ValueError:
+            return "no_class"  # Invalid date format
+        
         day_name = date_obj.strftime("%A").upper()
         batch = app_data.get("batch", "B1/B3")
         subjects = get_subjects_for_day(day_name, batch)

@@ -725,7 +725,7 @@ class SetupTab:
             
             # Validate that subjects exist for this batch
             if not weekly_counts:
-                show_error(self.notebook, "Error", f"No subjects found for batch '{new_batch}'!\nPlease check your timetable.")
+                messagebox.showerror("Error", f"No subjects found for batch '{new_batch}'!\nPlease check your timetable.")
                 return
             
             existing_subjects = {s["name"]: s for s in app_data["subjects"]}

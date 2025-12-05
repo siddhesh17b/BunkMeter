@@ -131,16 +131,20 @@ class TimetableTab:
         
         # Sort time slots by 24-hour format (convert 12-hour to 24-hour for sorting)
         def sort_time_slot(slot):
-            start_time = slot.split("-")[0].strip()
-            # Convert to 24-hour format for sorting
-            if ":" in start_time:
-                hour, minute = start_time.split(":")
-                hour = int(hour)
-                # If it's 01:00-05:00, it's PM (13:00-17:00)
-                if 1 <= hour <= 5:
-                    hour += 12
-                return hour * 60 + int(minute)
-            return 0
+            try:
+                start_time = slot.split("-")[0].strip()
+                # Convert to 24-hour format for sorting
+                if ":" in start_time:
+                    hour, minute = start_time.split(":")
+                    hour = int(hour)
+                    minute = int(minute)
+                    # If it's 01:00-05:00, it's PM (13:00-17:00)
+                    if 1 <= hour <= 5:
+                        hour += 12
+                    return hour * 60 + minute
+                return 0
+            except (ValueError, IndexError, AttributeError):
+                return 9999  # Put invalid slots at end
         
         time_slots = sorted(list(time_slots_set), key=sort_time_slot)
         
