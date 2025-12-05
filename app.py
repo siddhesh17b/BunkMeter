@@ -217,7 +217,7 @@ class BunkBuddyApp:
     def create_ui(self):
         """Create main tabbed interface"""
         # Modern header with left-aligned content
-        title_frame = tk.Frame(self.root, bg="#000000", height=70)
+        title_frame = tk.Frame(self.root, bg="#000000", height=55)
         title_frame.pack(fill=tk.X)
         title_frame.pack_propagate(False)
         
@@ -228,7 +228,7 @@ class BunkBuddyApp:
             font=("Segoe UI", 18, "bold"),
             bg="#000000",
             fg="white"
-        ).pack(side=tk.LEFT, padx=25, pady=20)
+        ).pack(side=tk.LEFT, padx=25, pady=12)
         
         # Configure ttk style for modern ribbon-style tabs
         style = ttk.Style()
@@ -240,35 +240,70 @@ class BunkBuddyApp:
         style.configure('TLabelframe.Label', background='#ffffff')
         style.configure('TLabel', background='#ffffff')
         
-        # Modern notebook styling
+        # Modern notebook styling - clean border
         style.configure('TNotebook', 
-                       background='#ffffff',
+                       background='#f5f5f5',
                        borderwidth=0,
-                       tabmargins=[0, 0, 0, 0])
+                       tabmargins=[10, 5, 10, 0])
         
-        # Modern pill-shaped tabs with rounded feel
+        # Remove default focus dotted line and center text
+        style.layout('TNotebook.Tab', [
+            ('Notebook.tab', {'sticky': 'nswe', 'children': [
+                ('Notebook.padding', {'side': 'top', 'sticky': 'nswe', 'children': [
+                    ('Notebook.label', {'side': 'top', 'sticky': 'nswe'})
+                ]})
+            ]})
+        ])
+        
+        # Modern pill-shaped tabs with centered text
         style.configure('TNotebook.Tab', 
-                       font=('Segoe UI', 13, 'bold'),
-                       padding=[35, 14],
-                       background='#f0f4f8',
-                       foreground='#1565c0',
+                       font=('Segoe UI', 12, 'bold'),
+                       padding=[30, 12],
+                       background='#e8eef4',
+                       foreground='#5f6368',
                        borderwidth=0,
-                       focuscolor='')
+                       focuscolor='',
+                       relief='flat',
+                       anchor='center')
         
+        # Tab state styling with modern colors
         style.map('TNotebook.Tab',
-                 background=[('selected', '#1565c0'), ('!selected', '#f0f4f8'), ('active', '#e3f2fd')],
-                 foreground=[('selected', '#ffffff'), ('!selected', '#1565c0')],
-                 expand=[('selected', [0, 0, 0, 2])])  # Slight raise effect for selected
+                 background=[
+                     ('selected', '#1a73e8'),  # Google Blue for selected
+                     ('active', '#d2e3fc'),    # Light blue on hover
+                     ('!selected', '#e8eef4')  # Light gray for unselected
+                 ],
+                 foreground=[
+                     ('selected', '#ffffff'),   # White text when selected
+                     ('active', '#1a73e8'),     # Blue text on hover
+                     ('!selected', '#5f6368')   # Gray text when not selected
+                 ],
+                 padding=[
+                     ('selected', [30, 14]),    # Slightly larger when selected
+                     ('!selected', [30, 12])
+                 ])
         
         # Tab control
         self.notebook = ttk.Notebook(self.root)
-        self.notebook.pack(fill=tk.BOTH, expand=True, padx=15, pady=(5, 15))
+        self.notebook.pack(fill=tk.BOTH, expand=True, padx=0, pady=0)
         
-        # Dynamic tab width adjustment
+        # Animate tab switch with fade effect
+        self.current_tab_index = 0
+        
+        def on_tab_changed(event):
+            new_index = self.notebook.index(self.notebook.select())
+            if new_index != self.current_tab_index:
+                self.current_tab_index = new_index
+                # Quick flash effect
+                self.notebook.configure(style='TNotebook')
+        
+        self.notebook.bind('<<NotebookTabChanged>>', on_tab_changed)
+        
+        # Dynamic tab width adjustment for full-width tabs
         def on_notebook_configure(event):
             num_tabs = 4
-            tab_width = (event.width - 40) // num_tabs
-            style.configure('TNotebook.Tab', width=tab_width, padding=[tab_width//4, 14])
+            tab_width = (event.width - 60) // num_tabs
+            style.configure('TNotebook.Tab', width=tab_width)
         self.notebook.bind('<Configure>', on_notebook_configure)
         
         # Create tabs
