@@ -10,6 +10,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from data_manager import load_data, save_data, get_app_data, parse_timetable_csv
+from modern_dialogs import messagebox
 from setup_tab import SetupTab
 from timetable_tab import TimetableTab
 from attendance_calendar import AttendanceCalendar
@@ -61,28 +62,57 @@ class BunkBuddyApp:
         Note: Batch names are auto-detected from timetable entries with format:
         "Subject (BatchA) / Subject (BatchB)"
         """
-        # Create modal dialog window
+        # Create modal dialog window with modern styling
         setup_window = tk.Toplevel(self.root)
         setup_window.title("Welcome to BunkMeter!")
-        setup_window.geometry("500x350")
         setup_window.transient(self.root)  # Set as child of main window
         setup_window.grab_set()  # Make window modal (blocks interaction with parent)
+        setup_window.configure(bg="#e3f2fd")  # Blue theme background
+        setup_window.resizable(False, False)
         
         # Center the window on screen
         setup_window.update_idletasks()
-        width = 500
-        height = 350
+        width = 550
+        height = 420
         x = (setup_window.winfo_screenwidth() // 2) - (width // 2)
         y = (setup_window.winfo_screenheight() // 2) - (height // 2)
         setup_window.geometry(f"{width}x{height}+{x}+{y}")
         
-        tk.Label(setup_window, text="Welcome to BunkMeter!", font=("Arial", 14, "bold")).pack(pady=10)
+        # Main container with border
+        main_frame = tk.Frame(
+            setup_window, 
+            bg="#e3f2fd",
+            highlightthickness=2,
+            highlightbackground="#1976d2"
+        )
+        main_frame.pack(fill="both", expand=True)
         
-        # Import timetable section
-        import_frame = ttk.LabelFrame(setup_window, text="Step 1: Import Your Timetable (Optional)", padding=10)
-        import_frame.pack(fill=tk.X, padx=20, pady=10)
+        # Styled header bar (blue theme)
+        header = tk.Frame(main_frame, bg="#1976d2", height=65)
+        header.pack(fill=tk.X)
+        header.pack_propagate(False)
         
-        tk.Label(import_frame, text="Upload your CSV timetable to auto-detect batches", font=("Segoe UI", 10)).pack()
+        tk.Label(
+            header,
+            text="🎓 Welcome to BunkMeter!",
+            font=("Segoe UI", 18, "bold"),
+            bg="#1976d2",
+            fg="white",
+            padx=20
+        ).pack(side=tk.LEFT, pady=15)
+        
+        # Content area
+        content = tk.Frame(main_frame, bg="#e3f2fd", padx=25, pady=20)
+        content.pack(fill="both", expand=True)
+        
+        # Import timetable section with styled box
+        import_box = tk.Frame(content, bg="#bbdefb", padx=15, pady=12)
+        import_box.pack(fill=tk.X, pady=(0, 15))
+        
+        tk.Label(import_box, text="Step 1: Import Your Timetable (Optional)", 
+                 font=("Segoe UI", 12, "bold"), bg="#bbdefb", fg="#1565c0").pack(anchor="w")
+        tk.Label(import_box, text="Upload your CSV timetable to auto-detect batches", 
+                 font=("Segoe UI", 11), bg="#bbdefb", fg="#1976d2").pack(anchor="w", pady=(5, 8))
         
         def import_timetable_firsttime():
             from data_manager import import_timetable_from_csv
@@ -96,13 +126,23 @@ class BunkBuddyApp:
                     # Refresh batch detection
                     update_batch_options()
         
-        ttk.Button(import_frame, text="📥 Import Timetable CSV", command=import_timetable_firsttime).pack(pady=5)
+        import_btn = tk.Button(
+            import_box, text="📥 Import Timetable CSV", font=("Segoe UI", 11, "bold"),
+            bg="#1976d2", fg="white", relief=tk.FLAT, bd=0, highlightthickness=0,
+            padx=15, pady=6, cursor="hand2", command=import_timetable_firsttime
+        )
+        import_btn.pack(anchor="w")
         
-        # Batch selection section
-        batch_frame = ttk.LabelFrame(setup_window, text="Step 2: Select Your Batch/Group", padding=10)
-        batch_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
+        # Batch selection section with styled box
+        batch_box = tk.Frame(content, bg="#bbdefb", padx=15, pady=12)
+        batch_box.pack(fill=tk.BOTH, expand=True, pady=(0, 15))
         
-        batch_container = ttk.Frame(batch_frame)
+        tk.Label(batch_box, text="Step 2: Select Your Batch/Group", 
+                 font=("Segoe UI", 12, "bold"), bg="#bbdefb", fg="#1565c0").pack(anchor="w")
+        tk.Label(batch_box, text="Choose the batch that matches your schedule", 
+                 font=("Segoe UI", 11), bg="#bbdefb", fg="#1976d2").pack(anchor="w", pady=(5, 8))
+        
+        batch_container = tk.Frame(batch_box, bg="#bbdefb")
         batch_container.pack(fill=tk.BOTH, expand=True)
         
         batch_var = tk.StringVar()
@@ -154,7 +194,12 @@ class BunkBuddyApp:
                 batch_names = ["B1/B3", "B2/B4"]  # Fallback to defaults
             
             for batch_name in batch_names:
-                ttk.Radiobutton(batch_container, text=batch_name, variable=batch_var, value=batch_name).pack(anchor=tk.W, pady=2)
+                rb = tk.Radiobutton(
+                    batch_container, text=batch_name, variable=batch_var, value=batch_name,
+                    font=("Segoe UI", 11), bg="#bbdefb", fg="#1565c0",
+                    activebackground="#90caf9", selectcolor="#e3f2fd", cursor="hand2"
+                )
+                rb.pack(anchor=tk.W, pady=3)
         
         # Initial batch detection
         update_batch_options()
@@ -173,7 +218,7 @@ class BunkBuddyApp:
             - Add checks before the app_data initialization
             - Show error messages using messagebox.showerror()
             """
-            from tkinter import messagebox
+            # Use modern_dialogs messagebox (already imported at top of file)
             
             selected_batch = batch_var.get()
             
@@ -210,7 +255,13 @@ class BunkBuddyApp:
             save_data()
             setup_window.destroy()
         
-        ttk.Button(setup_window, text="Continue", command=save_and_close).pack(pady=10)
+        # Styled Continue button (blue theme)
+        continue_btn = tk.Button(
+            content, text="Continue →", font=("Segoe UI", 12, "bold"),
+            bg="#1976d2", fg="white", relief=tk.FLAT, bd=0, highlightthickness=0,
+            padx=30, pady=10, cursor="hand2", command=save_and_close
+        )
+        continue_btn.pack(pady=(10, 0))
         
         self.root.wait_window(setup_window)
     
@@ -298,6 +349,24 @@ class BunkBuddyApp:
                 self.notebook.configure(style='TNotebook')
         
         self.notebook.bind('<<NotebookTabChanged>>', on_tab_changed)
+        
+        # Block tab switching when in setup mode
+        def on_tab_click(event):
+            # Check if setup_tab exists and is in setup mode
+            if hasattr(self, 'setup_tab') and self.setup_tab.setup_mode:
+                # Get the clicked tab (use str() to get widget path - avoids Pylance warning about _w)
+                clicked_tab = self.notebook.tk.call(str(self.notebook), "identify", "tab", event.x, event.y)
+                if clicked_tab != "" and int(clicked_tab) != 0:  # Not the Setup tab
+                    messagebox.showwarning(
+                        "Setup Required",
+                        "Please complete the setup first:\n\n"
+                        "1. Select your batch\n"
+                        "2. Set semester start and end dates\n\n"
+                        "Then you can access other tabs."
+                    )
+                    return "break"  # Prevent tab switch
+        
+        self.notebook.bind('<Button-1>', on_tab_click, add='+')
         
         # Dynamic tab width adjustment for full-width tabs
         def on_notebook_configure(event):

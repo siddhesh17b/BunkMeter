@@ -10,7 +10,7 @@ from tkinter import ttk
 
 class ModernDialog:
     """
-    Custom modern dialog class with themed styling
+    Custom modern dialog class with sleek, professional styling
     
     Dialog types:
     - info: Blue theme with ℹ️ icon
@@ -20,57 +20,62 @@ class ModernDialog:
     - confirm: Blue theme with ❓ icon, Yes/No buttons
     """
     
-    # Theme colors for different dialog types
+    # Theme colors for different dialog types - modern Material Design inspired
     THEMES = {
         "info": {
-            "bg": "#e3f2fd",
-            "header_bg": "#1976d2",
+            "bg": "#ffffff",
+            "header_bg": "#2196F3",
             "header_fg": "white",
-            "text_fg": "#1565c0",
+            "text_fg": "#333333",
             "icon": "ℹ️",
-            "btn_bg": "#1976d2",
+            "icon_bg": "#E3F2FD",
+            "btn_bg": "#2196F3",
             "btn_fg": "white",
-            "btn_hover": "#1565c0"
+            "btn_hover": "#1976D2"
         },
         "success": {
-            "bg": "#e8f5e9",
-            "header_bg": "#388e3c",
+            "bg": "#ffffff",
+            "header_bg": "#4CAF50",
             "header_fg": "white",
-            "text_fg": "#2e7d32",
-            "icon": "✅",
-            "btn_bg": "#388e3c",
+            "text_fg": "#333333",
+            "icon": "✓",
+            "icon_bg": "#E8F5E9",
+            "btn_bg": "#4CAF50",
             "btn_fg": "white",
-            "btn_hover": "#2e7d32"
+            "btn_hover": "#388E3C"
         },
         "warning": {
-            "bg": "#fff8e1",
-            "header_bg": "#f57c00",
+            "bg": "#ffffff",
+            "header_bg": "#FF9800",
             "header_fg": "white",
-            "text_fg": "#e65100",
-            "icon": "⚠️",
-            "btn_bg": "#f57c00",
+            "text_fg": "#333333",
+            "icon": "⚠",
+            "icon_bg": "#FFF3E0",
+            "btn_bg": "#FF9800",
             "btn_fg": "white",
-            "btn_hover": "#e65100"
+            "btn_hover": "#F57C00"
         },
         "error": {
-            "bg": "#ffebee",
-            "header_bg": "#d32f2f",
+            "bg": "#ffffff",
+            "header_bg": "#F44336",
             "header_fg": "white",
-            "text_fg": "#c62828",
-            "icon": "❌",
-            "btn_bg": "#d32f2f",
+            "text_fg": "#333333",
+            "icon": "✕",
+            "icon_bg": "#FFEBEE",
+            "btn_bg": "#F44336",
             "btn_fg": "white",
-            "btn_hover": "#c62828"
+            "btn_hover": "#D32F2F"
         },
         "confirm": {
-            "bg": "#e3f2fd",
-            "header_bg": "#1976d2",
+            "bg": "#ffffff",
+            "header_bg": "#2196F3",
             "header_fg": "white",
-            "text_fg": "#1565c0",
-            "icon": "❓",
-            "btn_bg": "#1976d2",
+            "text_fg": "#333333",
+            "icon": "?",
+            "icon_bg": "#E3F2FD",
+            "btn_bg": "#2196F3",
             "btn_fg": "white",
-            "btn_hover": "#1565c0"
+            "btn_hover": "#1976D2"
         }
     }
     
@@ -86,6 +91,18 @@ class ModernDialog:
             buttons: List of button configs [{"text": "OK", "command": func, "primary": True}]
         """
         self.result = None
+        
+        # Handle None parent - get default root or create one
+        if parent is None:
+            parent = tk._default_root
+        if parent is None:
+            # Create a hidden root window if none exists
+            parent = tk.Tk()
+            parent.withdraw()
+            self._created_root = True
+        else:
+            self._created_root = False
+        
         self.parent = parent
         
         # Get theme
@@ -96,88 +113,113 @@ class ModernDialog:
         self.dialog.title(title)
         self.dialog.configure(bg=theme["bg"])
         self.dialog.resizable(False, False)
-        self.dialog.transient(parent)
+        if parent is not None:
+            self.dialog.transient(parent)
         self.dialog.grab_set()
         
-        # Remove window decorations for cleaner look (optional)
-        # self.dialog.overrideredirect(True)
+        # Add shadow effect via border
+        self.dialog.configure(highlightthickness=1, highlightbackground="#e0e0e0")
         
-        # Main container with border
-        main_frame = tk.Frame(
-            self.dialog, 
-            bg=theme["bg"],
-            highlightthickness=2,
-            highlightbackground=theme["header_bg"]
-        )
+        # Main container
+        main_frame = tk.Frame(self.dialog, bg=theme["bg"])
         main_frame.pack(fill=tk.BOTH, expand=True)
         
-        # Header bar
-        header = tk.Frame(main_frame, bg=theme["header_bg"], height=45)
-        header.pack(fill=tk.X)
-        header.pack_propagate(False)
-        
-        tk.Label(
-            header,
-            text=f"{theme['icon']} {title}",
-            font=("Segoe UI", 12, "bold"),
-            bg=theme["header_bg"],
-            fg=theme["header_fg"],
-            padx=15
-        ).pack(side=tk.LEFT, pady=10)
-        
-        # Content area
-        content = tk.Frame(main_frame, bg=theme["bg"], padx=25, pady=20)
+        # Content area with icon and message
+        content = tk.Frame(main_frame, bg=theme["bg"], padx=30, pady=30)
         content.pack(fill=tk.BOTH, expand=True)
         
-        # Message with icon
-        msg_frame = tk.Frame(content, bg=theme["bg"])
-        msg_frame.pack(fill=tk.X)
+        # Icon circle - large circular background with icon
+        icon_frame = tk.Frame(content, bg=theme["bg"])
+        icon_frame.pack(pady=(0, 20))
         
-        tk.Label(
-            msg_frame,
+        # Create circular icon background using a canvas
+        icon_size = 70
+        icon_canvas = tk.Canvas(
+            icon_frame, 
+            width=icon_size, 
+            height=icon_size, 
+            bg=theme["bg"], 
+            highlightthickness=0
+        )
+        icon_canvas.pack()
+        
+        # Draw circle
+        icon_canvas.create_oval(
+            2, 2, icon_size-2, icon_size-2,
+            fill=theme["icon_bg"],
+            outline=theme["header_bg"],
+            width=3
+        )
+        
+        # Add icon text
+        icon_canvas.create_text(
+            icon_size//2, icon_size//2,
             text=theme["icon"],
-            font=("Segoe UI", 28),
-            bg=theme["bg"]
-        ).pack(side=tk.LEFT, padx=(0, 15))
+            font=("Segoe UI", 28, "bold"),
+            fill=theme["header_bg"]
+        )
         
+        # Title - large and bold
         tk.Label(
-            msg_frame,
+            content,
+            text=title,
+            font=("Segoe UI", 18, "bold"),
+            bg=theme["bg"],
+            fg="#222222"
+        ).pack(pady=(0, 10))
+        
+        # Message - centered, readable
+        tk.Label(
+            content,
             text=message,
-            font=("Segoe UI", 11),
+            font=("Segoe UI", 12),
             bg=theme["bg"],
             fg=theme["text_fg"],
-            justify=tk.LEFT,
+            justify=tk.CENTER,
             wraplength=350
-        ).pack(side=tk.LEFT, fill=tk.X, expand=True)
+        ).pack(pady=(0, 25))
         
         # Button area
         btn_frame = tk.Frame(content, bg=theme["bg"])
-        btn_frame.pack(fill=tk.X, pady=(20, 5))
+        btn_frame.pack(fill=tk.X)
         
         # Default buttons if none provided
         if buttons is None:
             buttons = [{"text": "OK", "command": self.close, "primary": True}]
         
-        # Create buttons (right-aligned)
-        for btn_config in reversed(buttons):
+        # Center buttons
+        btn_container = tk.Frame(btn_frame, bg=theme["bg"])
+        btn_container.pack()
+        
+        # Create buttons - modern rounded style
+        for i, btn_config in enumerate(buttons):
             is_primary = btn_config.get("primary", False)
+            
             btn = tk.Button(
-                btn_frame,
+                btn_container,
                 text=btn_config["text"],
-                font=("Segoe UI", 10, "bold" if is_primary else "normal"),
-                bg=theme["btn_bg"] if is_primary else "#ffffff",
-                fg=theme["btn_fg"] if is_primary else theme["btn_bg"],
-                activebackground=theme["btn_hover"],
-                activeforeground="white",
+                font=("Segoe UI", 11, "bold"),
+                bg=theme["btn_bg"] if is_primary else "#f5f5f5",
+                fg=theme["btn_fg"] if is_primary else "#666666",
+                activebackground=theme["btn_hover"] if is_primary else "#e0e0e0",
+                activeforeground="white" if is_primary else "#333333",
                 relief=tk.FLAT,
-                padx=20,
-                pady=6,
+                bd=0,
+                highlightthickness=0,
+                padx=30,
+                pady=10,
                 cursor="hand2",
-                highlightthickness=1 if not is_primary else 0,
-                highlightbackground=theme["btn_bg"],
                 command=btn_config.get("command", self.close)
             )
-            btn.pack(side=tk.RIGHT, padx=(8, 0))
+            btn.pack(side=tk.LEFT, padx=5)
+            
+            # Add hover effect
+            if is_primary:
+                btn.bind("<Enter>", lambda e, b=btn, c=theme["btn_hover"]: b.configure(bg=c))
+                btn.bind("<Leave>", lambda e, b=btn, c=theme["btn_bg"]: b.configure(bg=c))
+            else:
+                btn.bind("<Enter>", lambda e, b=btn: b.configure(bg="#e8e8e8"))
+                btn.bind("<Leave>", lambda e, b=btn: b.configure(bg="#f5f5f5"))
         
         # Center dialog on parent
         self.center_on_parent()
@@ -200,8 +242,9 @@ class ModernDialog:
         dialog_height = self.dialog.winfo_height()
         
         # Ensure minimum size
-        if dialog_width < 400:
-            dialog_width = 400
+        min_width = 400
+        if dialog_width < min_width:
+            dialog_width = min_width
             self.dialog.geometry(f"{dialog_width}x{dialog_height}")
         
         # Get parent position
@@ -236,36 +279,26 @@ class ModernDialog:
 
 def show_info(parent, title, message):
     """Show an info dialog (replaces messagebox.showinfo)"""
-    if parent is None:
-        parent = tk._default_root
     dialog = ModernDialog(parent, title, message, "info")
     dialog.wait()
 
 def show_success(parent, title, message):
     """Show a success dialog"""
-    if parent is None:
-        parent = tk._default_root
     dialog = ModernDialog(parent, title, message, "success")
     dialog.wait()
 
 def show_warning(parent, title, message):
     """Show a warning dialog (replaces messagebox.showwarning)"""
-    if parent is None:
-        parent = tk._default_root
     dialog = ModernDialog(parent, title, message, "warning")
     dialog.wait()
 
 def show_error(parent, title, message):
     """Show an error dialog (replaces messagebox.showerror)"""
-    if parent is None:
-        parent = tk._default_root
     dialog = ModernDialog(parent, title, message, "error")
     dialog.wait()
 
 def ask_yes_no(parent, title, message):
     """Show a confirmation dialog (replaces messagebox.askyesno)"""
-    if parent is None:
-        parent = tk._default_root
     result = [False]  # Use list to allow modification in nested function
     
     def on_yes():

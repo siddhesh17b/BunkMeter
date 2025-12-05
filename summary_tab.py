@@ -60,52 +60,13 @@ class SummaryTab:
         """Create the enhanced summary dashboard tab"""
         tab = ttk.Frame(self.notebook)
         
-        # Main container with scrollbar
+        # Main container without scrollbar
         main_container = tk.Frame(tab, bg='#ffffff')
         main_container.pack(fill=tk.BOTH, expand=True)
         
-        # Canvas for scrolling
-        canvas = tk.Canvas(main_container, highlightthickness=0, bg='#ffffff')
-        scrollbar = ttk.Scrollbar(main_container, orient="vertical", command=canvas.yview)
-        self.canvas_frame = tk.Frame(canvas, bg='#ffffff')
-        
-        # Fill full width instead of centering
-        canvas_window = canvas.create_window((0, 0), window=self.canvas_frame, anchor="nw")
-        
-        def _configure_canvas(event):
-            # Update scroll region
-            canvas.configure(scrollregion=canvas.bbox("all"))
-            # Make frame fill the entire canvas width
-            canvas.itemconfig(canvas_window, width=event.width)
-        
-        canvas.bind("<Configure>", _configure_canvas)
-        self.canvas_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
-        
-        canvas.configure(yscrollcommand=scrollbar.set)
-        
-        # Store canvas reference for mousewheel management
-        self.main_canvas = canvas
-        
-        # Mouse wheel scrolling for main dashboard
-        def _on_canvas_mousewheel(event):
-            canvas.yview_scroll(int(-1*(event.delta/120)), "units")
-        
-        def _bind_canvas_mousewheel(event):
-            canvas.bind_all("<MouseWheel>", _on_canvas_mousewheel)
-        
-        def _unbind_canvas_mousewheel(event):
-            canvas.unbind_all("<MouseWheel>")
-        
-        # Store these for use by table area
-        self._bind_canvas_scroll = _bind_canvas_mousewheel
-        self._unbind_canvas_scroll = _unbind_canvas_mousewheel
-        
-        # Bind to canvas to capture mouse entering/leaving
-        canvas.bind("<Enter>", _bind_canvas_mousewheel)
-        canvas.bind("<Leave>", _unbind_canvas_mousewheel)
-        
-        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        # Content frame (no scrolling)
+        self.canvas_frame = tk.Frame(main_container, bg='#ffffff')
+        self.canvas_frame.pack(fill=tk.BOTH, expand=True)
         
         # GitHub link at bottom
         github_frame = ttk.Frame(tab)
@@ -216,23 +177,10 @@ class SummaryTab:
         # Mouse wheel scrolling for treeview - takes priority over dashboard scroll
         def _on_tree_mousewheel(event):
             self.summary_tree.yview_scroll(int(-1*(event.delta/120)), "units")
-            return "break"  # Prevent event from propagating to dashboard
+            return "break"  # Prevent event from propagating
         
-        def _bind_tree_mousewheel(event):
-            # Unbind dashboard scroll and bind table scroll
-            self.main_canvas.unbind_all("<MouseWheel>")
-            self.summary_tree.bind_all("<MouseWheel>", _on_tree_mousewheel)
-        
-        def _unbind_tree_mousewheel(event):
-            # Unbind table scroll and restore dashboard scroll
-            self.summary_tree.unbind_all("<MouseWheel>")
-            self._bind_canvas_scroll(None)
-        
-        # Bind Enter/Leave on treeview and table container
-        self.summary_tree.bind("<Enter>", _bind_tree_mousewheel)
-        self.summary_tree.bind("<Leave>", _unbind_tree_mousewheel)
-        table_left.bind("<Enter>", _bind_tree_mousewheel)
-        table_left.bind("<Leave>", _unbind_tree_mousewheel)
+        # Bind mousewheel to treeview
+        self.summary_tree.bind("<MouseWheel>", _on_tree_mousewheel)
         
         # Bind double-click to open override dialog
         self.summary_tree.bind("<Double-Button-1>", self.on_row_double_click)
@@ -1016,34 +964,47 @@ class SummaryTab:
             messagebox.showerror("Error", "Subject not found")
             return
         
-        # Create dialog with proper sizing
+        # Create modern dialog
         dialog = tk.Toplevel()
         dialog.title(f"Manual Override - {subject_name}")
-        dialog.resizable(True, True)
+        dialog.configure(bg="#ffffff")
+        dialog.resizable(False, False)
         
         # Set size and center the dialog
-        width = 500
-        height = 500
+        width = 480
+        height = 520
         x = (dialog.winfo_screenwidth() // 2) - (width // 2)
         y = (dialog.winfo_screenheight() // 2) - (height // 2)
         dialog.geometry(f'{width}x{height}+{x}+{y}')
-        dialog.minsize(400, 400)  # Minimum size
         
         dialog.transient(self.notebook.master)
         dialog.grab_set()
         
-        # Header
-        tk.Label(
-            dialog,
-            text=f"📝 Manual Attendance Override",
-            font=("Segoe UI", 14, "bold")
-        ).pack(pady=15)
+        # Header bar
+        header_frame = tk.Frame(dialog, bg="#1976d2", height=60)
+        header_frame.pack(fill=tk.X)
+        header_frame.pack_propagate(False)
         
         tk.Label(
-            dialog,
-            text=f"Subject: {subject_name}",
-            font=("Segoe UI", 11)
-        ).pack(pady=5)
+            header_frame,
+            text="✏️ Manual Override",
+            font=("Segoe UI", 18, "bold"),
+            bg="#1976d2",
+            fg="white"
+        ).pack(pady=15)
+        
+        # Content area
+        content = tk.Frame(dialog, bg="#ffffff")
+        content.pack(fill=tk.BOTH, expand=True, padx=25, pady=20)
+        
+        # Subject name
+        tk.Label(
+            content,
+            text=subject_name,
+            font=("Segoe UI", 16, "bold"),
+            bg="#ffffff",
+            fg="#2c3e50"
+        ).pack(anchor=tk.W, pady=(0, 15))
         
         # Calculate current values using TODAY as end date
         today = datetime.now().strftime("%Y-%m-%d")
@@ -1084,74 +1045,76 @@ class SummaryTab:
             
             current_attended = max(0, current_total - absent_count)
         
-        # Current data frame
-        current_frame = tk.LabelFrame(dialog, text="📊 Current Data", font=("Segoe UI", 10, "bold"))
-        current_frame.pack(fill=tk.X, padx=20, pady=10)
-        
-        tk.Label(
-            current_frame,
-            text=f"Attended: {current_attended} classes",
-            font=("Segoe UI", 10)
-        ).pack(anchor=tk.W, padx=10, pady=5)
-        
-        tk.Label(
-            current_frame,
-            text=f"Total: {current_total} classes",
-            font=("Segoe UI", 10)
-        ).pack(anchor=tk.W, padx=10, pady=5)
-        
         current_pct = calculate_attendance(current_attended, current_total)
-        status_color = COLOR_SAFE if current_pct >= 75 else COLOR_RISK
         
-        tk.Label(
-            current_frame,
-            text=f"Attendance: {current_pct:.1f}%",
-            font=("Segoe UI", 10, "bold"),
-            foreground=status_color
-        ).pack(anchor=tk.W, padx=10, pady=5)
+        # Current stats display
+        stats_frame = tk.Frame(content, bg="#f5f5f5", padx=15, pady=12)
+        stats_frame.pack(fill=tk.X, pady=(0, 20))
+        
+        stats_row = tk.Frame(stats_frame, bg="#f5f5f5")
+        stats_row.pack(fill=tk.X)
+        
+        # Attended
+        tk.Label(stats_row, text="Attended:", font=("Segoe UI", 12), bg="#f5f5f5", fg="#666").pack(side=tk.LEFT)
+        tk.Label(stats_row, text=f"{current_attended}", font=("Segoe UI", 12, "bold"), bg="#f5f5f5", fg="#333").pack(side=tk.LEFT, padx=(5, 20))
+        
+        # Total
+        tk.Label(stats_row, text="Total:", font=("Segoe UI", 12), bg="#f5f5f5", fg="#666").pack(side=tk.LEFT)
+        tk.Label(stats_row, text=f"{current_total}", font=("Segoe UI", 12, "bold"), bg="#f5f5f5", fg="#333").pack(side=tk.LEFT, padx=(5, 20))
+        
+        # Percentage
+        pct_color = COLOR_SAFE if current_pct >= 75 else (COLOR_WARNING if current_pct >= 60 else COLOR_RISK)
+        tk.Label(stats_row, text=f"{current_pct:.1f}%", font=("Segoe UI", 14, "bold"), bg="#f5f5f5", fg=pct_color).pack(side=tk.RIGHT)
         
         if has_override:
             tk.Label(
-                current_frame,
-                text="⚠️ Manual override is active",
-                font=("Segoe UI", 10),
-                foreground="#ff9800"
-            ).pack(anchor=tk.W, padx=10, pady=5)
+                stats_frame,
+                text="⚠️ Manual override is currently active",
+                font=("Segoe UI", 11),
+                bg="#f5f5f5",
+                fg="#ff9800"
+            ).pack(anchor=tk.W, pady=(8, 0))
         
-        # Override inputs frame
-        input_frame = tk.LabelFrame(dialog, text="✏️ Override Attendance", font=("Segoe UI", 10, "bold"))
-        input_frame.pack(fill=tk.X, padx=20, pady=10)
-        
+        # Input section
         tk.Label(
-            input_frame,
-            text="Enter actual attendance data:",
-            font=("Segoe UI", 10)
-        ).pack(anchor=tk.W, padx=10, pady=5)
+            content,
+            text="Enter new values:",
+            font=("Segoe UI", 13, "bold"),
+            bg="#ffffff",
+            fg="#495057"
+        ).pack(anchor=tk.W, pady=(0, 10))
         
         # Total classes input
-        tk.Label(input_frame, text="Total Classes Held:", font=("Segoe UI", 10)).pack(anchor=tk.W, padx=10, pady=(10, 0))
-        total_entry = tk.Entry(input_frame, font=("Segoe UI", 10), width=15)
+        input_row1 = tk.Frame(content, bg="#ffffff")
+        input_row1.pack(fill=tk.X, pady=8)
+        
+        tk.Label(input_row1, text="Total Classes:", font=("Segoe UI", 12), bg="#ffffff", width=15, anchor=tk.W).pack(side=tk.LEFT)
+        total_entry = tk.Entry(input_row1, font=("Segoe UI", 14), width=12, relief=tk.SOLID, bd=1)
         total_entry.insert(0, str(current_total))
-        total_entry.pack(anchor=tk.W, padx=10, pady=5)
+        total_entry.pack(side=tk.LEFT, padx=10, ipady=5)
         
         # Attended classes input
-        tk.Label(input_frame, text="Classes Attended:", font=("Segoe UI", 10)).pack(anchor=tk.W, padx=10, pady=(10, 0))
-        attended_entry = tk.Entry(input_frame, font=("Segoe UI", 10), width=15)
-        attended_entry.insert(0, str(current_attended))
-        attended_entry.pack(anchor=tk.W, padx=10, pady=5)
+        input_row2 = tk.Frame(content, bg="#ffffff")
+        input_row2.pack(fill=tk.X, pady=8)
         
-        # Info label
+        tk.Label(input_row2, text="Classes Attended:", font=("Segoe UI", 12), bg="#ffffff", width=15, anchor=tk.W).pack(side=tk.LEFT)
+        attended_entry = tk.Entry(input_row2, font=("Segoe UI", 14), width=12, relief=tk.SOLID, bd=1)
+        attended_entry.insert(0, str(current_attended))
+        attended_entry.pack(side=tk.LEFT, padx=10, ipady=5)
+        
+        # Info text
         tk.Label(
-            dialog,
-            text="💡 Use this when actual attendance differs from timetable\n(cancellations, rescheduling, extra classes, etc.)",
+            content,
+            text="💡 Use when classes were cancelled, rescheduled, or extra classes held",
             font=("Segoe UI", 10),
-            foreground="#6c757d",
-            justify=tk.CENTER
-        ).pack(pady=10)
+            bg="#ffffff",
+            fg="#6c757d",
+            wraplength=400
+        ).pack(anchor=tk.W, pady=(15, 0))
         
         # Buttons frame
-        btn_frame = tk.Frame(dialog)
-        btn_frame.pack(pady=15)
+        btn_frame = tk.Frame(dialog, bg="#ffffff")
+        btn_frame.pack(fill=tk.X, padx=25, pady=20)
         
         def save_override():
             try:
@@ -1192,6 +1155,47 @@ class SummaryTab:
                 dialog.destroy()
                 messagebox.showinfo("Success", f"Manual override removed for {subject_name}")
         
-        ttk.Button(btn_frame, text="💾 Save Override", command=save_override).pack(side=tk.LEFT, padx=5)
-        ttk.Button(btn_frame, text="🔄 Clear Override", command=clear_override).pack(side=tk.LEFT, padx=5)
-        ttk.Button(btn_frame, text="❌ Cancel", command=dialog.destroy).pack(side=tk.LEFT, padx=5)
+        # Styled buttons
+        save_btn = tk.Button(
+            btn_frame,
+            text="💾 Save Override",
+            font=("Segoe UI", 12, "bold"),
+            bg="#1976d2",
+            fg="white",
+            relief=tk.FLAT,
+            padx=20,
+            pady=8,
+            cursor="hand2",
+            command=save_override
+        )
+        save_btn.pack(side=tk.LEFT, padx=(0, 10))
+        
+        clear_btn = tk.Button(
+            btn_frame,
+            text="🔄 Clear",
+            font=("Segoe UI", 12),
+            bg="#f5f5f5",
+            fg="#333",
+            relief=tk.SOLID,
+            bd=1,
+            padx=15,
+            pady=8,
+            cursor="hand2",
+            command=clear_override
+        )
+        clear_btn.pack(side=tk.LEFT, padx=(0, 10))
+        
+        cancel_btn = tk.Button(
+            btn_frame,
+            text="Cancel",
+            font=("Segoe UI", 12),
+            bg="#ffffff",
+            fg="#666",
+            relief=tk.SOLID,
+            bd=1,
+            padx=15,
+            pady=8,
+            cursor="hand2",
+            command=dialog.destroy
+        )
+        cancel_btn.pack(side=tk.RIGHT)

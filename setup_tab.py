@@ -44,38 +44,9 @@ class SetupTab:
         """Create setup tab"""
         tab = ttk.Frame(self.notebook)
         
-        # Scrollable frame with white background
-        canvas = tk.Canvas(tab, bg='#ffffff', highlightthickness=0)
-        scrollbar = ttk.Scrollbar(tab, orient="vertical", command=canvas.yview)
-        scrollable_frame = tk.Frame(canvas, bg='#ffffff')
-        
-        canvas_window = canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-        
-        def _configure_scroll(event):
-            canvas.configure(scrollregion=canvas.bbox("all"))
-            # Make scrollable frame fill canvas width for responsive layout
-            canvas.itemconfig(canvas_window, width=event.width)
-        
-        scrollable_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
-        canvas.bind("<Configure>", _configure_scroll)
-        canvas.configure(yscrollcommand=scrollbar.set)
-        
-        # Enable mouse wheel scrolling (local binding only)
-        def _on_mousewheel(event):
-            canvas.yview_scroll(int(-1*(event.delta/120)), "units")
-        canvas.bind("<MouseWheel>", _on_mousewheel)
-        scrollable_frame.bind("<MouseWheel>", _on_mousewheel)
-        
-        # Bind to all child widgets when they enter
-        def _bind_mousewheel(event):
-            canvas.bind_all("<MouseWheel>", _on_mousewheel)
-        def _unbind_mousewheel(event):
-            canvas.unbind_all("<MouseWheel>")
-        canvas.bind("<Enter>", _bind_mousewheel)
-        canvas.bind("<Leave>", _unbind_mousewheel)
-        
-        canvas.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
+        # Simple frame with white background (no scrolling)
+        scrollable_frame = tk.Frame(tab, bg='#ffffff')
+        scrollable_frame.pack(fill="both", expand=True)
         
         app_data = get_app_data()
         
@@ -236,6 +207,8 @@ class SetupTab:
             activebackground="#2e7d32",
             activeforeground="white",
             relief=tk.FLAT,
+            bd=0,
+            highlightthickness=0,
             padx=20,
             pady=8,
             cursor="hand2",
@@ -310,6 +283,8 @@ class SetupTab:
             activebackground="#e65100",
             activeforeground="white",
             relief=tk.FLAT,
+            bd=0,
+            highlightthickness=0,
             padx=10,
             pady=4,
             cursor="hand2",
@@ -324,7 +299,10 @@ class SetupTab:
             bg="#ffcc80",
             fg="#e65100",
             activebackground="#ffb74d",
+            activeforeground="#e65100",
             relief=tk.FLAT,
+            bd=0,
+            highlightthickness=0,
             padx=10,
             pady=4,
             cursor="hand2",
@@ -339,7 +317,10 @@ class SetupTab:
             bg="#ffcc80",
             fg="#e65100",
             activebackground="#ffb74d",
+            activeforeground="#e65100",
             relief=tk.FLAT,
+            bd=0,
+            highlightthickness=0,
             padx=10,
             pady=4,
             cursor="hand2",
@@ -391,6 +372,8 @@ class SetupTab:
             activebackground="#3949ab",
             activeforeground="white",
             relief=tk.FLAT,
+            bd=0,
+            highlightthickness=0,
             padx=12,
             pady=6,
             cursor="hand2"
@@ -406,6 +389,8 @@ class SetupTab:
             activebackground="#3949ab",
             activeforeground="white",
             relief=tk.FLAT,
+            bd=0,
+            highlightthickness=0,
             padx=12,
             pady=6,
             cursor="hand2"
@@ -421,6 +406,8 @@ class SetupTab:
             activebackground="#3949ab",
             activeforeground="white",
             relief=tk.FLAT,
+            bd=0,
+            highlightthickness=0,
             padx=12,
             pady=6,
             cursor="hand2"
@@ -494,6 +481,8 @@ class SetupTab:
             activebackground="#ad1457",
             activeforeground="white",
             relief=tk.FLAT,
+            bd=0,
+            highlightthickness=0,
             padx=12,
             pady=6,
             cursor="hand2"
@@ -508,6 +497,8 @@ class SetupTab:
             activebackground="#ad1457",
             activeforeground="white",
             relief=tk.FLAT,
+            bd=0,
+            highlightthickness=0,
             padx=12,
             pady=6,
             cursor="hand2"
@@ -522,6 +513,8 @@ class SetupTab:
             activebackground="#ad1457",
             activeforeground="white",
             relief=tk.FLAT,
+            bd=0,
+            highlightthickness=0,
             padx=12,
             pady=6,
             cursor="hand2"
@@ -578,6 +571,8 @@ class SetupTab:
             activebackground="#c62828",
             activeforeground="white",
             relief=tk.FLAT,
+            bd=0,
+            highlightthickness=0,
             padx=14,
             pady=6,
             cursor="hand2"
@@ -779,39 +774,59 @@ class SetupTab:
             messagebox.showinfo("Success", "Semester dates updated!")
     
     def add_holiday(self):
-        """Add a holiday period with improved dialog layout"""
+        """Add a holiday period with modern styled dialog"""
         app_data = get_app_data()
         dialog = tk.Toplevel()
         dialog.title("Add Holiday Period")
-        dialog.resizable(True, True)
+        dialog.resizable(False, False)
+        dialog.configure(bg="#fff8e1")  # Orange theme background
         
-        # Center the dialog window with compact size
-        width = 620
-        height = 420
+        # Center the dialog window
+        width = 660
+        height = 480
         x = (dialog.winfo_screenwidth() // 2) - (width // 2)
         y = (dialog.winfo_screenheight() // 2) - (height // 2)
         dialog.geometry(f"{width}x{height}+{x}+{y}")
         
-        # Main container with padding
-        main_frame = ttk.Frame(dialog, padding=15)
+        # Main container with border
+        main_frame = tk.Frame(
+            dialog, 
+            bg="#fff8e1",
+            highlightthickness=2,
+            highlightbackground="#f57c00"
+        )
         main_frame.pack(fill="both", expand=True)
         
-        # Title
-        title_label = tk.Label(main_frame, text="🏖️ Add Holiday Period", 
-                               font=("Segoe UI", 14, "bold"), fg="#007bff")
-        title_label.pack(pady=(0, 15))
+        # Styled header bar (orange theme)
+        header = tk.Frame(main_frame, bg="#f57c00", height=55)
+        header.pack(fill=tk.X)
+        header.pack_propagate(False)
         
-        # Holiday name input
-        name_frame = ttk.Frame(main_frame)
+        tk.Label(
+            header,
+            text="🏖️ Add Holiday Period",
+            font=("Segoe UI", 16, "bold"),
+            bg="#f57c00",
+            fg="white",
+            padx=20
+        ).pack(side=tk.LEFT, pady=12)
+        
+        # Content area
+        content = tk.Frame(main_frame, bg="#fff8e1", padx=25, pady=20)
+        content.pack(fill="both", expand=True)
+        
+        # Holiday name input with larger font
+        name_frame = tk.Frame(content, bg="#fff8e1")
         name_frame.pack(fill="x", pady=(0, 15))
-        tk.Label(name_frame, text="Holiday Name:", font=("Segoe UI", 10, "bold")).pack(side="left", padx=(0, 10))
-        name_entry = ttk.Entry(name_frame, width=40, font=("Segoe UI", 10))
-        name_entry.pack(side="left", fill="x", expand=True)
+        tk.Label(name_frame, text="Holiday Name:", font=("Segoe UI", 12, "bold"), 
+                 bg="#fff8e1", fg="#e65100").pack(side="left", padx=(0, 10))
+        name_entry = tk.Entry(name_frame, width=35, font=("Segoe UI", 12))
+        name_entry.pack(side="left", fill="x", expand=True, ipady=4)
         name_entry.insert(0, "")
         name_entry.focus_set()
         
         # Calendars side by side
-        calendars_frame = ttk.Frame(main_frame)
+        calendars_frame = tk.Frame(content, bg="#fff8e1")
         calendars_frame.pack(fill="both", expand=True, pady=10)
         
         # Start date calendar (left)
@@ -827,8 +842,8 @@ class SetupTab:
         end_cal.pack()
         
         # Button frame at bottom
-        btn_frame = ttk.Frame(main_frame)
-        btn_frame.pack(fill="x", pady=(15, 0))
+        btn_frame = tk.Frame(content, bg="#fff8e1")
+        btn_frame.pack(fill="x", pady=(20, 0))
         
         def save_holiday():
             name = name_entry.get().strip()
@@ -894,8 +909,20 @@ class SetupTab:
             else:
                 messagebox.showinfo("Success", f"Added {added_count} holiday(s).")
         
-        ttk.Button(btn_frame, text="Cancel", command=dialog.destroy).pack(side="right", padx=5)
-        ttk.Button(btn_frame, text="✓ Save Holiday", command=save_holiday).pack(side="right", padx=5)
+        # Styled buttons - Cancel (white) and Save (orange)
+        cancel_btn = tk.Button(
+            btn_frame, text="Cancel", font=("Segoe UI", 11),
+            bg="#ffffff", fg="#666666", relief=tk.FLAT, bd=0, highlightthickness=0,
+            padx=20, pady=8, cursor="hand2", command=dialog.destroy
+        )
+        cancel_btn.pack(side="right", padx=(10, 0))
+        
+        save_btn = tk.Button(
+            btn_frame, text="✓ Save Holiday", font=("Segoe UI", 11, "bold"),
+            bg="#f57c00", fg="white", relief=tk.FLAT, bd=0, highlightthickness=0,
+            padx=20, pady=8, cursor="hand2", command=save_holiday
+        )
+        save_btn.pack(side="right")
     
     def remove_holiday(self):
         """Remove selected holiday"""
@@ -942,52 +969,74 @@ class SetupTab:
             messagebox.showinfo("Success", f"Removed all {count} holiday(s)")
     
     def add_skipped_days(self):
-        """Add a skipped days period with improved dialog layout"""
+        """Add a skipped days period with modern styled dialog"""
         app_data = get_app_data()
         dialog = tk.Toplevel()
         dialog.title("Add Skipped Period")
-        dialog.resizable(True, True)
+        dialog.resizable(False, False)
+        dialog.configure(bg="#fce4ec")  # Pink theme background
         
-        # Center the dialog window with compact size
-        width = 620
-        height = 460
+        # Center the dialog window
+        width = 660
+        height = 520
         x = (dialog.winfo_screenwidth() // 2) - (width // 2)
         y = (dialog.winfo_screenheight() // 2) - (height // 2)
         dialog.geometry(f"{width}x{height}+{x}+{y}")
         
-        # Main container with padding
-        main_frame = ttk.Frame(dialog, padding=15)
+        # Main container with border
+        main_frame = tk.Frame(
+            dialog, 
+            bg="#fce4ec",
+            highlightthickness=2,
+            highlightbackground="#c2185b"
+        )
         main_frame.pack(fill="both", expand=True)
         
-        # Title
-        title_label = tk.Label(main_frame, text="📅 Add Skipped Period", 
-                               font=("Segoe UI", 14, "bold"), fg="#dc3545")
-        title_label.pack(pady=(0, 10))
+        # Styled header bar (pink theme)
+        header = tk.Frame(main_frame, bg="#c2185b", height=55)
+        header.pack(fill=tk.X)
+        header.pack_propagate(False)
+        
+        tk.Label(
+            header,
+            text="📅 Add Skipped Period",
+            font=("Segoe UI", 16, "bold"),
+            bg="#c2185b",
+            fg="white",
+            padx=20
+        ).pack(side=tk.LEFT, pady=12)
+        
+        # Content area
+        content = tk.Frame(main_frame, bg="#fce4ec", padx=25, pady=20)
+        content.pack(fill="both", expand=True)
         
         # Warning message
-        warning_label = tk.Label(
-            main_frame, 
+        warning_frame = tk.Frame(content, bg="#ffcdd2", padx=15, pady=8)
+        warning_frame.pack(fill="x", pady=(0, 15))
+        tk.Label(
+            warning_frame, 
             text="⚠️ All classes in this period will be marked absent",
-            font=("Segoe UI", 10),
-            fg="#dc3545"
-        )
-        warning_label.pack(pady=(0, 10))
+            font=("Segoe UI", 11, "bold"),
+            bg="#ffcdd2",
+            fg="#c62828"
+        ).pack()
         
-        # Reason input
-        reason_frame = ttk.Frame(main_frame)
+        # Reason input with larger font
+        reason_frame = tk.Frame(content, bg="#fce4ec")
         reason_frame.pack(fill="x", pady=(0, 15))
-        tk.Label(reason_frame, text="Reason:", font=("Segoe UI", 10, "bold")).pack(side="left", padx=(0, 10))
-        name_entry = ttk.Entry(reason_frame, width=40, font=("Segoe UI", 10))
-        name_entry.pack(side="left", fill="x", expand=True)
+        tk.Label(reason_frame, text="Reason:", font=("Segoe UI", 12, "bold"), 
+                 bg="#fce4ec", fg="#880e4f").pack(side="left", padx=(0, 10))
+        name_entry = tk.Entry(reason_frame, width=25, font=("Segoe UI", 12))
+        name_entry.pack(side="left", fill="x", expand=True, ipady=4)
         name_entry.insert(0, "")
         name_entry.focus_set()
         
         # Placeholder hint
-        tk.Label(reason_frame, text="(e.g., Sick, Personal, Family)", 
-                 font=("Segoe UI", 10), fg="#6c757d").pack(side="left", padx=5)
+        tk.Label(reason_frame, text="(e.g., Sick, Personal)", 
+                 font=("Segoe UI", 10), bg="#fce4ec", fg="#6c757d").pack(side="left", padx=10)
         
         # Calendars side by side
-        calendars_frame = ttk.Frame(main_frame)
+        calendars_frame = tk.Frame(content, bg="#fce4ec")
         calendars_frame.pack(fill="both", expand=True, pady=10)
         
         # Start date calendar (left)
@@ -1003,8 +1052,8 @@ class SetupTab:
         end_cal.pack()
         
         # Button frame at bottom
-        btn_frame = ttk.Frame(main_frame)
-        btn_frame.pack(fill="x", pady=(15, 0))
+        btn_frame = tk.Frame(content, bg="#fce4ec")
+        btn_frame.pack(fill="x", pady=(20, 0))
         
         def save_skipped():
             name = name_entry.get().strip()
@@ -1116,8 +1165,20 @@ class SetupTab:
                 msg_parts.append(f"{skipped_duplicate} day(s) skipped (already marked).")
             messagebox.showinfo("Success", "\n".join(msg_parts))
         
-        ttk.Button(btn_frame, text="Cancel", command=dialog.destroy).pack(side="right", padx=5)
-        ttk.Button(btn_frame, text="✓ Save & Mark Absent", command=save_skipped).pack(side="right", padx=5)
+        # Styled buttons - Cancel (white) and Save (pink)
+        cancel_btn = tk.Button(
+            btn_frame, text="Cancel", font=("Segoe UI", 11),
+            bg="#ffffff", fg="#666666", relief=tk.FLAT, bd=0, highlightthickness=0,
+            padx=20, pady=8, cursor="hand2", command=dialog.destroy
+        )
+        cancel_btn.pack(side="right", padx=(10, 0))
+        
+        save_btn = tk.Button(
+            btn_frame, text="✓ Save & Mark Absent", font=("Segoe UI", 11, "bold"),
+            bg="#c2185b", fg="white", relief=tk.FLAT, bd=0, highlightthickness=0,
+            padx=20, pady=8, cursor="hand2", command=save_skipped
+        )
+        save_btn.pack(side="right")
     
     def remove_skipped_days(self):
         """Remove selected skipped period and its absence marks"""
